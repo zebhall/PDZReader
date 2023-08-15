@@ -137,7 +137,7 @@ class PDZFile:
         self.anodeElementZ = int(readByte(self.pdzfilereader))
         self.anodeElementSymbol = elementZtoSymbol(self.anodeElementZ)
         self.anodeElementName = elementZtoName(self.anodeElementZ)
-        print(f'Anode: {self.anodeElementName}')
+        print(f'anode element Z : {self.anodeElementZ}')
 
         print(self.pdzfilereader.read(5))  # this comes out as b'--A}\x00' ?
 
@@ -307,7 +307,7 @@ def main():
     
 
     #plot stuff
-    plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust figure size as needed
+    plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust the figure size as needed
     plt.xlabel('Energy (keV)')
     plt.ylabel('Counts')
     plt.title(assay.name)
@@ -339,3 +339,183 @@ if __name__ == '__main__':
 
 
 
+
+
+
+# def readSpectrumParameters(pdzfile,spectrum):
+#     print("spectrum parameters:")
+#     print(readInt(pdzfile))
+#     print(read32bitFloat(pdzfile))
+#     print('counts raw total: ' + str(readInt(pdzfile)))
+#     print('counts valid total: '+ str(readInt(pdzfile)))
+#     print(read32bitFloat(pdzfile))
+#     print(read32bitFloat(pdzfile))
+    
+#     total_time = read32bitFloat(pdzfile)
+#     print("total time: "+ str(total_time))
+#     print("(NOT really)live time: "+str(read32bitFloat(pdzfile)))
+#     print(str(read32bitFloat(pdzfile)))
+#     print(read32bitFloat(pdzfile))
+#     print(read32bitFloat(pdzfile))
+
+#     spectrum.sourceVoltage = read32bitFloat(pdzfile)
+#     print("tube voltage: "+str(spectrum.sourceVoltage))
+#     spectrum.sourceCurrent = read32bitFloat(pdzfile)
+#     print("tube current: "+str(spectrum.sourceCurrent))
+
+#     spectrum.filterLayer1ElementZ = readShort(pdzfile)
+#     spectrum.filterLayer1Thickness = readShort(pdzfile)
+#     spectrum.filterLayer2ElementZ = readShort(pdzfile)
+#     spectrum.filterLayer2Thickness = readShort(pdzfile)
+#     spectrum.filterLayer3ElementZ = readShort(pdzfile)
+#     spectrum.filterLayer3Thickness = readShort(pdzfile)
+#     spectrum.filterNumber = readShort(pdzfile)
+#     print(f'Filter {spectrum.filterNumber}: {spectrum.filterLayer1ElementZ}({spectrum.filterLayer1Thickness}uM)/{spectrum.filterLayer2ElementZ}({spectrum.filterLayer2Thickness}uM)/{spectrum.filterLayer3ElementZ}({spectrum.filterLayer3Thickness}uM)')
+#     #print(read32bitFloat(pdzfile))
+#     #print(read32bitFloat(pdzfile))
+#     #print(read32bitFloat(pdzfile))
+#     #print(readShort(pdzfile))
+
+#     # print(read32bitFloat(pdzfile))
+#     # print(read32bitFloat(pdzfile))
+#     spectrum.detectorTempInC = read32bitFloat(pdzfile)
+#     spectrum.ambientTempInF = read32bitFloat(pdzfile)
+#     print(f'Temps: det(c): {spectrum.detectorTempInC}, amb(f): {spectrum.ambientTempInF}')
+    
+#     print(f'vacuum(pdz): {readInt(pdzfile)}')
+
+#     spectrum.energyPerChannel = read32bitFloat(pdzfile)
+#     print("energy per channel (eV): "+str(spectrum.energyPerChannel))
+
+#     print(readShort(pdzfile)) # gain Control Algorithms? 0=None, 1=ClassicTurbo, 2=VassiliNextGen
+    
+#     spectrum.energyChannelStart = read32bitFloat(pdzfile) # 4
+#     print(f'spec channel starts (ev): {spectrum.energyChannelStart}')
+#     #print("abscissa: "+str(read32bitFloat(pdzfile)))
+
+#     year = readShort(pdzfile) 
+#     month = readShort(pdzfile) 
+#     datetimedayofweek = readShort(pdzfile)
+#     day = readShort(pdzfile)
+#     hour = readShort(pdzfile)
+#     minute = readShort(pdzfile)
+#     second = readShort(pdzfile)
+#     millisecond = readShort(pdzfile)
+#     spectrum.datetime = dt(year,month,day,hour,minute,second)
+#     print(spectrum.datetime)
+#     print(f'date: {year}/{month}/{day}')
+#     print(f'time: {hour}:{minute}:{second}')
+#     print(f'weird bruker thing: {datetimedayofweek}')
+#     spectrum.nosePressure = read32bitFloat(pdzfile)
+#     print(f'nosepressure (mBar): {spectrum.nosePressure}')
+#     spectrum.numberOfChannels = readShort(pdzfile)
+#     print(f'siNumChannels: {spectrum.numberOfChannels}')
+#     spectrum.noseTempInC = readShort(pdzfile)
+#     print(f'nosetemp (C): {spectrum.noseTempInC}')
+#     print(readShort(pdzfile))
+#     # print(read32bitFloat(pdzfile))
+#     # print(read32bitFloat(pdzfile))
+#     # print(read32bitFloat(pdzfile))
+#     # print(readShort(pdzfile)) #unnecc
+#     # print(read32bitFloat(pdzfile))
+#     # print(read32bitFloat(pdzfile))
+#     # print(read32bitFloat(pdzfile))
+#     # 26
+
+#     spectrum.name = readString(pdzfile)
+#     print(f"spectrum name: {spectrum.name}")
+# #    depending on measurement mode treat spectrum name differently    
+#     print(readShort(pdzfile))
+#     print("finished reading spectrum parameters")
+
+# def readSpectrumCounts(pdzfile,spectrum):
+#     for i in range(spectrum.numberOfChannels):
+#         spectrum.counts.append(readInt(pdzfile))
+#     print("finished reading counts.")
+
+# def readPDZFile(pdzfile_name):
+#     spectrum1 = XRFSpectrum()
+#     spectrum2 = XRFSpectrum()
+#     spectrum3 = XRFSpectrum()
+#     pdzfile = open(pdzfile_name, "rb")
+
+#     version = readUShort(pdzfile)
+#     print("version: "+str(version))
+#     if version != 25:
+#         print("wrong pdz version")
+#         exit()
+#     #print(readInt(pdzfile))
+#     print('num1='+str(readUShort(pdzfile)))
+#     print('num2?='+str(readUShort(pdzfile)))
+
+#     print(pdzfile.read(10).decode("utf16"))
+#     print(readInt(pdzfile))     #4
+#     print(readShort(pdzfile))   #2
+#     print(readInt(pdzfile))     #4
+
+#     instrument_serial_number = readString(pdzfile)
+#     print(f"Instrument Serial Number: {instrument_serial_number}")
+
+#     instrument_build_number = readString(pdzfile)
+#     print(f"Instrument Build Number: {instrument_build_number}")
+
+#     print('anode material: ' + str(readByte(pdzfile)))
+#     print(pdzfile.read(5))
+
+#     detector_type = readString(pdzfile)
+#     print("detector type: "+ detector_type)
+
+#     print(readString(pdzfile)+": "+str(readShort(pdzfile)))
+#     print(readString(pdzfile))
+#     listLength = readInt(pdzfile)
+#     for i in range(listLength):
+#         print(str(readShort(pdzfile))+": "+readString(pdzfile))
+#     print(readShort(pdzfile))
+#     print(readInt(pdzfile))
+#     print(readInt(pdzfile))
+#     print(readInt(pdzfile))
+#     print(readInt(pdzfile))
+#     print(readInt(pdzfile))
+#     print(readInt(pdzfile))
+
+#     print(read32bitFloat(pdzfile))
+#     print(read32bitFloat(pdzfile))
+#     print(read32bitFloat(pdzfile))
+#     print(read32bitFloat(pdzfile))
+#     print(f'Time, live: {read32bitFloat(pdzfile)}')
+#     print(f'Time, total: {read32bitFloat(pdzfile)}')
+
+#     measurementMode = readString(pdzfile)
+#     print("Measurement mode: "+measurementMode+" "+str(readInt(pdzfile)))
+#     print("User: "+readString(pdzfile))
+#     print("some short: "+str(readShort(pdzfile)))
+#     readSpectrumParameters(pdzfile,spectrum1)
+
+#     # here starts the array of 2048 32 bit integers (little endian)
+#     readSpectrumCounts(pdzfile,spectrum1)
+#     # if measurementMode == "Artax":
+#     #     print("ready")
+#     #     exit()
+#     if readShort(pdzfile) == 3:
+#         print('Second Phase found.')
+#         readSpectrumParameters(pdzfile,spectrum2)
+#         readSpectrumCounts(pdzfile,spectrum2)
+#         # print(readShort(pdzfile))
+#         # print(readInt(pdzfile))
+#         # print(readInt(pdzfile))
+#         # print(readInt(pdzfile))
+#         # print(readInt(pdzfile))
+#         # print(readShort(pdzfile))
+
+#         if readShort(pdzfile) == 3:
+#             print('Third Phase found.')
+#             readSpectrumParameters(pdzfile,spectrum3)
+#             readSpectrumCounts(pdzfile,spectrum3)
+#             print(readShort(pdzfile))
+#             print(readInt(pdzfile))
+#             print(readInt(pdzfile))
+#             print(readInt(pdzfile))
+#             print(readInt(pdzfile))
+#             print(readShort(pdzfile))
+
+#     return spectrum1, spectrum2, spectrum3
