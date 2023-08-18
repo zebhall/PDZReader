@@ -1,6 +1,6 @@
 # PDZreader by zh
-versionNum = 'v0.1.1'
-versionDate = '2023/08/17'
+versionNum = 'v0.1.2'
+versionDate = '2023/08/18'
 
 
 import struct
@@ -8,6 +8,7 @@ from datetime import datetime as dt
 import matplotlib.pyplot as plt
 import os
 import sys
+from tkinter import filedialog
 
 
 class PDZFile:
@@ -113,95 +114,93 @@ class PDZFile:
             print("finished reading counts.")
         
         # create pdz file reader object
-        self.pdzfilereader = open(pdz_file_path, "rb")
+        with open(pdz_file_path, "rb") as self.pdzfilereader:
 
-        # read general pdz file data!
-        # read pdz file version
-        self.pdzfileversion = readUShort(self.pdzfilereader)
-        print("version: "+str(self.pdzfileversion))
-        if self.pdzfileversion != 25:
-            print("ERROR: wrong pdz version")
-        print('num1='+str(readUShort(self.pdzfilereader)))
-        print('num2?='+str(readUShort(self.pdzfilereader)))
-        print(self.pdzfilereader.read(10).decode("utf16"))
-        print(readInt(self.pdzfilereader))     #4
-        print(readShort(self.pdzfilereader))   #2
-        print(readInt(self.pdzfilereader))     #4
+            # read general pdz file data!
+            # read pdz file version
+            self.pdzfileversion = readUShort(self.pdzfilereader)
+            print("version: "+str(self.pdzfileversion))
+            if self.pdzfileversion != 25:
+                print("ERROR: wrong pdz version")
+            print('num1='+str(readUShort(self.pdzfilereader)))
+            print('num2?='+str(readUShort(self.pdzfilereader)))
+            print(self.pdzfilereader.read(10).decode("utf16"))
+            print(readInt(self.pdzfilereader))     #4
+            print(readShort(self.pdzfilereader))   #2
+            print(readInt(self.pdzfilereader))     #4
 
-        self.instrumentSerialNumber = readString(self.pdzfilereader)
-        print(f"Instrument Serial Number: {self.instrumentSerialNumber}")
+            self.instrumentSerialNumber = readString(self.pdzfilereader)
+            print(f"Instrument Serial Number: {self.instrumentSerialNumber}")
 
-        self.instrumentBuildNumber = readString(self.pdzfilereader)
-        print(f"Instrument Build Number: {self.instrumentBuildNumber}")
+            self.instrumentBuildNumber = readString(self.pdzfilereader)
+            print(f"Instrument Build Number: {self.instrumentBuildNumber}")
 
-        self.anodeElementZ = int(readByte(self.pdzfilereader))
-        self.anodeElementSymbol = elementZtoSymbol(self.anodeElementZ)
-        self.anodeElementName = elementZtoName(self.anodeElementZ)
-        print(f'Anode: {self.anodeElementName}')
+            self.anodeElementZ = int(readByte(self.pdzfilereader))
+            self.anodeElementSymbol = elementZtoSymbol(self.anodeElementZ)
+            self.anodeElementName = elementZtoName(self.anodeElementZ)
+            print(f'Anode: {self.anodeElementName}')
 
-        print(self.pdzfilereader.read(5))  # this comes out as b'--A}\x00' ?
+            print(self.pdzfilereader.read(5))  # this comes out as b'--A}\x00' ?
 
-        self.detectorType = readString(self.pdzfilereader)
-        print("detector type: "+ self.detectorType)
+            self.detectorType = readString(self.pdzfilereader)
+            print("detector type: "+ self.detectorType)
 
-        print(readString(self.pdzfilereader)+": "+str(readShort(self.pdzfilereader)))
-        print(readString(self.pdzfilereader))
-        listLength = readInt(self.pdzfilereader)
-        for i in range(listLength):
-            print(str(readShort(self.pdzfilereader))+": "+readString(self.pdzfilereader))
-        print(readShort(self.pdzfilereader))
-        print(readInt(self.pdzfilereader))
-        print(readInt(self.pdzfilereader))
-        print(readInt(self.pdzfilereader))
-        print(readInt(self.pdzfilereader))
-        print(readInt(self.pdzfilereader))
-        print(readInt(self.pdzfilereader))
+            print(readString(self.pdzfilereader)+": "+str(readShort(self.pdzfilereader)))
+            print(readString(self.pdzfilereader))
+            listLength = readInt(self.pdzfilereader)
+            for i in range(listLength):
+                print(str(readShort(self.pdzfilereader))+": "+readString(self.pdzfilereader))
+            print(readShort(self.pdzfilereader))
+            print(readInt(self.pdzfilereader))
+            print(readInt(self.pdzfilereader))
+            print(readInt(self.pdzfilereader))
+            print(readInt(self.pdzfilereader))
+            print(readInt(self.pdzfilereader))
+            print(readInt(self.pdzfilereader))
 
-        print(read32bitFloat(self.pdzfilereader))
-        print(read32bitFloat(self.pdzfilereader))
-        print(read32bitFloat(self.pdzfilereader))
-        print(read32bitFloat(self.pdzfilereader))
-        print(f'Time, live: {read32bitFloat(self.pdzfilereader)}')
-        print(f'Time, total: {read32bitFloat(self.pdzfilereader)}')
+            print(read32bitFloat(self.pdzfilereader))
+            print(read32bitFloat(self.pdzfilereader))
+            print(read32bitFloat(self.pdzfilereader))
+            print(read32bitFloat(self.pdzfilereader))
+            print(f'Time, live: {read32bitFloat(self.pdzfilereader)}')
+            print(f'Time, total: {read32bitFloat(self.pdzfilereader)}')
 
-        measurementMode = readString(self.pdzfilereader)
-        print("Measurement mode: "+measurementMode+" "+str(readInt(self.pdzfilereader)))
-        print("User: "+readString(self.pdzfilereader))
-        print("some short: "+str(readShort(self.pdzfilereader)))
+            measurementMode = readString(self.pdzfilereader)
+            print("Measurement mode: "+measurementMode+" "+str(readInt(self.pdzfilereader)))
+            print("User: "+readString(self.pdzfilereader))
+            print("some short: "+str(readShort(self.pdzfilereader)))
 
-        # CREATE SPECTRUM 1
-        self.spectrum1 = XRFSpectrum()
-        readSpectrumParameters(self.pdzfilereader,self.spectrum1)
-        readSpectrumCounts(self.pdzfilereader,self.spectrum1)
-        self.phasecount = 1
+            # CREATE SPECTRUM 1
+            self.spectrum1 = XRFSpectrum()
+            readSpectrumParameters(self.pdzfilereader,self.spectrum1)
+            readSpectrumCounts(self.pdzfilereader,self.spectrum1)
+            self.phasecount = 1
 
-        if readShort(self.pdzfilereader) == 3:
-            print('Second Phase found.')
-            self.phasecount += 1
-            self.spectrum2 = XRFSpectrum()
-            readSpectrumParameters(self.pdzfilereader,self.spectrum2)
-            readSpectrumCounts(self.pdzfilereader,self.spectrum2)
-            # print(readShort(pdzfile))
-            # print(readInt(pdzfile))
-            # print(readInt(pdzfile))
-            # print(readInt(pdzfile))
-            # print(readInt(pdzfile))
-            # print(readShort(pdzfile))
             if readShort(self.pdzfilereader) == 3:
-                print('Third Phase found.')
+                print('Second Phase found.')
                 self.phasecount += 1
-                self.spectrum3 = XRFSpectrum()
-                readSpectrumParameters(self.pdzfilereader,self.spectrum3)
-                readSpectrumCounts(self.pdzfilereader,self.spectrum3)
-                # print(readShort(self.pdzfilereader))
-                # print(readInt(self.pdzfilereader))
-                # print(readInt(self.pdzfilereader))
-                # print(readInt(self.pdzfilereader))
-                # print(readInt(self.pdzfilereader))
-                # print(readShort(self.pdzfilereader))
+                self.spectrum2 = XRFSpectrum()
+                readSpectrumParameters(self.pdzfilereader,self.spectrum2)
+                readSpectrumCounts(self.pdzfilereader,self.spectrum2)
+                # print(readShort(pdzfile))
+                # print(readInt(pdzfile))
+                # print(readInt(pdzfile))
+                # print(readInt(pdzfile))
+                # print(readInt(pdzfile))
+                # print(readShort(pdzfile))
+                if readShort(self.pdzfilereader) == 3:
+                    print('Third Phase found.')
+                    self.phasecount += 1
+                    self.spectrum3 = XRFSpectrum()
+                    readSpectrumParameters(self.pdzfilereader,self.spectrum3)
+                    readSpectrumCounts(self.pdzfilereader,self.spectrum3)
+                    # print(readShort(self.pdzfilereader))
+                    # print(readInt(self.pdzfilereader))
+                    # print(readInt(self.pdzfilereader))
+                    # print(readInt(self.pdzfilereader))
+                    # print(readInt(self.pdzfilereader))
+                    # print(readShort(self.pdzfilereader))
 
-
-        self.pdzfilereader.close()
 
     def __repr__(self) -> str:
         return f'{self.name} / {self.phasecount} phases / {self.datetime} / {self.instrumentSerialNumber}'
@@ -289,35 +288,34 @@ def elementSymboltoName(sym:str):
         print('Error: Symbol too long')
         return 'ERR'
 
-
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-
 def main():
-
-    pdzpath = resource_path('00156-REE_IDX.pdz')
+    
+    pdzpath = filedialog.askopenfilename(title="Select PDZ File to view",filetypes=[("PDZ File", "*.pdz")], initialdir = os.getcwd())
+    if pdzpath == '':
+        exit()
+    #pdzpath = resource_path('00156-REE_IDX.pdz')
     #pdzpath = resource_path('00093-GeoExploration.pdz')
     #pdzpath = resource_path('00148-GeoExploration.pdz')
     #pdzpath = resource_path('00002-Spectrometer Mode.pdz')
     assay = PDZFile(pdzpath)
 
 
-    print(assay.spectrum1.energyPerChannel)
-    print(assay.spectrum2.energyPerChannel)
-    print(assay.spectrum3.energyPerChannel)
-    print(assay)
+
+    
     
 
     #plot stuff
     plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust figure size as needed
     plt.xlabel('Energy (keV)')
     plt.ylabel('Counts')
-    plt.title(assay.name)
-    plt.grid(True, which='both', axis='both')
-    #plt.minorticks_on()
+    plt.title(f'{assay.instrumentSerialNumber} - {assay.name}')
+    plt.grid(True, which='major', axis='both')
+    plt.minorticks_on()
     plt.rcParams['path.simplify'] = False
     plt.style.use("seaborn-v0_8-whitegrid")
 
@@ -336,8 +334,10 @@ def main():
                 assay.spectrum3.generateEnergies()
                 plt.plot(assay.spectrum3.energies, assay.spectrum3.counts)
                 plt.legend([assay.spectrum1.name, assay.spectrum2.name, assay.spectrum3.name])
-    plt.show()
 
+    
+    print(assay)
+    plt.show()
 
 if __name__ == '__main__':
     main()
