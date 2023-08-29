@@ -1,13 +1,13 @@
 # PDZreader by zh
-versionNum = 'v0.1.2'
-versionDate = '2023/08/18'
-
+versionNum = 'v0.1.3'
+versionDate = '2023/08/29'
 
 import struct
-from datetime import datetime as dt
-import matplotlib.pyplot as plt
 import os
 import sys
+from datetime import datetime as dt
+
+import matplotlib.pyplot as plt
 from tkinter import filedialog
 
 
@@ -20,40 +20,54 @@ class PDZFile:
 
     def readPDZFileData(self, pdz_file_path:str):
         def readByte(reader):
+            '''1 byte'''
             return struct.unpack("B",reader.read(1))[0]
         def readShort(reader):
+            '''AKA Int16: 2 byte Int, -32,768 to 32,767'''
             return struct.unpack("<h",reader.read(2))[0]
         def readUShort(reader):
+            '''2 byte unsigned Int, 0 to 65,535'''
             return struct.unpack("<H",reader.read(2))[0]
         def readInt(reader):
+            '''4 byte Int, -2,147,483,648 to 2,147,483,647'''
             return struct.unpack("<i",reader.read(4))[0]
         def readUInt(reader):
+            '''4 byte unsigned Int, 0 to 4,294,967,295'''
             return struct.unpack("<I",reader.read(4))[0]
-        def read32bitFloat(reader): # 32-bit float = 'single' in c#
+        def readFloatSingle(reader): # 32-bit float = 'single' in c#
+            '''4 byte Float'''
             return struct.unpack("<f",reader.read(4))[0]
+        def readFloatDouble(reader): # 64-bit float = 'double' in c#
+            '''8 byte Float'''
+            return struct.unpack("<d",reader.read(8))[0]
         def readString(reader):
-            length = readInt(reader)
-            print(f"(string of length {str(length)})")
-            return reader.read(length*2).decode("utf16")
+            '''variable length'''
+            strlen = readInt(reader)
+            #print(f"(string of length {str(strlen)})")
+            return reader.read(strlen*2).decode("utf16")
+        def readSpectrumCounts(reader,spectrum):
+            for i in range(spectrum.numberOfChannels):
+                spectrum.counts.append(readInt(reader))
+            #print("finished reading counts.")
         def readSpectrumParameters(reader,spectrum):
-            print("spectrum parameters:")
+            #spectrum parameters
             print(readInt(reader))
-            print(read32bitFloat(reader))
+            print(readFloatSingle(reader))
             print('counts raw total: ' + str(readInt(reader)))
             print('counts valid total: '+ str(readInt(reader)))
-            print(read32bitFloat(reader))
-            print(read32bitFloat(reader))
+            print(readFloatSingle(reader))
+            print(readFloatSingle(reader))
             
-            total_time = read32bitFloat(reader)
+            total_time = readFloatSingle(reader)
             print("total time: "+ str(total_time))
-            print("(NOT really)live time: "+str(read32bitFloat(reader)))
-            print(str(read32bitFloat(reader)))
-            print(read32bitFloat(reader))
-            print(read32bitFloat(reader))
+            print("(NOT really)live time: "+str(readFloatSingle(reader)))
+            print(str(readFloatSingle(reader)))
+            print(readFloatSingle(reader))
+            print(readFloatSingle(reader))
 
-            spectrum.sourceVoltage = read32bitFloat(reader)
+            spectrum.sourceVoltage = readFloatSingle(reader)
             print("tube voltage: "+str(spectrum.sourceVoltage))
-            spectrum.sourceCurrent = read32bitFloat(reader)
+            spectrum.sourceCurrent = readFloatSingle(reader)
             print("tube current: "+str(spectrum.sourceCurrent))
 
             spectrum.filterLayer1ElementZ = readShort(reader)
@@ -69,19 +83,20 @@ class PDZFile:
             spectrum.filterDesciption = f'{spectrum.filterLayer1ElementSymbol}({spectrum.filterLayer1Thickness}uM)/{spectrum.filterLayer2ElementSymbol}({spectrum.filterLayer2Thickness}uM)/{spectrum.filterLayer3ElementSymbol}({spectrum.filterLayer3Thickness}uM)'.replace('/(0uM)','').replace('(0uM)','No Filter')
 
             print(f'Filter: {spectrum.filterDesciption}')
-            spectrum.detectorTempInC = read32bitFloat(reader)
-            spectrum.ambientTempInF = read32bitFloat(reader)
+            spectrum.detectorTempInC = readFloatSingle(reader)
+            spectrum.ambientTempInF = readFloatSingle(reader)
             spectrum.ambientTempInC = (spectrum.ambientTempInF - 32)/1.8    #convert to C
-            print(f'Temps (Celsius): Detector: {spectrum.detectorTempInC:.2f}, Ambient: {spectrum.ambientTempInC:.2f}')
+            print(f'Temps : Detector(C): {spectrum.detectorTempInC:.2f}, Ambient(F): {spectrum.ambientTempInF:.2f}')
             
-            print(f'vacuum(pdz): {readInt(reader)}')    # unsure how to properly read this value
+            spectrum.vacuumState = readInt(reader)
+            print(f'vacuum(pdz): {spectrum.vacuumState}')    # unsure how to properly read this value tbh
 
-            spectrum.energyPerChannel = read32bitFloat(reader)
+            spectrum.energyPerChannel = readFloatSingle(reader)
             print("energy per channel (eV): "+str(spectrum.energyPerChannel))
 
             print(readShort(reader)) # gain Control Algorithms? 0=None, 1=ClassicTurbo, 2=VassiliNextGen
             
-            spectrum.energyChannelStart = read32bitFloat(reader) # 4
+            spectrum.energyChannelStart = readFloatSingle(reader) # 4
             print(f'Spectrum channel starts at (ev): {spectrum.energyChannelStart}') # effectively abscissa
 
             spectrum_year = readShort(reader) 
@@ -95,45 +110,42 @@ class PDZFile:
             spectrum.datetime = dt(spectrum_year,spectrum_month,spectrum_day,spectrum_hour,spectrum_minute,spectrum_second)
             print(f'Date/Time: {spectrum.datetime}')
             
-            spectrum.nosePressure = read32bitFloat(reader)
-            print(f'nosepressure (mBar): {spectrum.nosePressure}')
+            spectrum.nosePressure = readFloatSingle(reader)
+            print(f'Nose Pressure (mBar): {spectrum.nosePressure}')
             spectrum.numberOfChannels = readShort(reader)
             print(f'siNumChannels: {spectrum.numberOfChannels}')
             spectrum.noseTempInC = readShort(reader)
             print(f'Nose Temperature (C): {spectrum.noseTempInC:.2f}')
-            print(readShort(reader))
+            print(readShort(reader))    #num8 first assignment
 
             spectrum.name = readString(reader)
             print(f"spectrum name: {spectrum.name}")
-            # depending on measurement mode treat spectrum name differently    
-            print(readShort(reader))
+            # depending on measurement mode treat spectrum name differently? maybe only applicable for artax spectra? 
+            print(readShort(reader))    ##num8 second assignment
             print("finished reading spectrum parameters")
-        def readSpectrumCounts(reader,spectrum):
-            for i in range(spectrum.numberOfChannels):
-                spectrum.counts.append(readInt(reader))
-            print("finished reading counts.")
-        
+
         # create pdz file reader object
         with open(pdz_file_path, "rb") as self.pdzfilereader:
-
             # read general pdz file data!
             # read pdz file version
-            self.pdzfileversion = readUShort(self.pdzfilereader)
+            self.pdzfileversion = readShort(self.pdzfilereader)
             print("version: "+str(self.pdzfileversion))
             if self.pdzfileversion != 25:
                 print("ERROR: wrong pdz version")
-            print('num1='+str(readUShort(self.pdzfilereader)))
-            print('num2?='+str(readUShort(self.pdzfilereader)))
+
+            print('num1='+str(readUInt(self.pdzfilereader)))
             print(self.pdzfilereader.read(10).decode("utf16"))
-            print(readInt(self.pdzfilereader))     #4
-            print(readShort(self.pdzfilereader))   #2
-            print(readInt(self.pdzfilereader))     #4
+            print(f'instrument type: {readUInt(self.pdzfilereader)}')
+            # while loop thing? for sections?
+            
+            print(f'num2={readShort(self.pdzfilereader)}')
+            print(f'num3={readUInt(self.pdzfilereader)}')    
 
             self.instrumentSerialNumber = readString(self.pdzfilereader)
-            print(f"Instrument Serial Number: {self.instrumentSerialNumber}")
+            #print(f"Instrument Serial Number: {self.instrumentSerialNumber}")
 
             self.instrumentBuildNumber = readString(self.pdzfilereader)
-            print(f"Instrument Build Number: {self.instrumentBuildNumber}")
+            #print(f"Instrument Build Number: {self.instrumentBuildNumber}")
 
             self.anodeElementZ = int(readByte(self.pdzfilereader))
             self.anodeElementSymbol = elementZtoSymbol(self.anodeElementZ)
@@ -143,10 +155,11 @@ class PDZFile:
             print(self.pdzfilereader.read(5))  # this comes out as b'--A}\x00' ?
 
             self.detectorType = readString(self.pdzfilereader)
-            print("detector type: "+ self.detectorType)
+            print(f'detector type: {self.detectorType}')
 
             print(readString(self.pdzfilereader)+": "+str(readShort(self.pdzfilereader)))
-            print(readString(self.pdzfilereader))
+            self.collimatorType = readString(self.pdzfilereader)
+            print(f'collimator type: {self.collimatorType}')
             listLength = readInt(self.pdzfilereader)
             for i in range(listLength):
                 print(str(readShort(self.pdzfilereader))+": "+readString(self.pdzfilereader))
@@ -158,12 +171,12 @@ class PDZFile:
             print(readInt(self.pdzfilereader))
             print(readInt(self.pdzfilereader))
 
-            print(read32bitFloat(self.pdzfilereader))
-            print(read32bitFloat(self.pdzfilereader))
-            print(read32bitFloat(self.pdzfilereader))
-            print(read32bitFloat(self.pdzfilereader))
-            print(f'Time, live: {read32bitFloat(self.pdzfilereader)}')
-            print(f'Time, total: {read32bitFloat(self.pdzfilereader)}')
+            print(readFloatSingle(self.pdzfilereader))
+            print(readFloatSingle(self.pdzfilereader))
+            print(readFloatSingle(self.pdzfilereader))
+            print(readFloatSingle(self.pdzfilereader))
+            print(f'Time, live: {readFloatSingle(self.pdzfilereader)}')
+            print(f'Time, total: {readFloatSingle(self.pdzfilereader)}')
 
             measurementMode = readString(self.pdzfilereader)
             print("Measurement mode: "+measurementMode+" "+str(readInt(self.pdzfilereader)))
@@ -174,37 +187,29 @@ class PDZFile:
             self.spectrum1 = XRFSpectrum()
             readSpectrumParameters(self.pdzfilereader,self.spectrum1)
             readSpectrumCounts(self.pdzfilereader,self.spectrum1)
+            self.spectrum1.generateEnergies()
             self.phasecount = 1
-
+            
             if readShort(self.pdzfilereader) == 3:
+                # CREATE SPECTRUM 2
                 print('Second Phase found.')
                 self.phasecount += 1
                 self.spectrum2 = XRFSpectrum()
                 readSpectrumParameters(self.pdzfilereader,self.spectrum2)
                 readSpectrumCounts(self.pdzfilereader,self.spectrum2)
-                # print(readShort(pdzfile))
-                # print(readInt(pdzfile))
-                # print(readInt(pdzfile))
-                # print(readInt(pdzfile))
-                # print(readInt(pdzfile))
-                # print(readShort(pdzfile))
+                self.spectrum2.generateEnergies()
+
                 if readShort(self.pdzfilereader) == 3:
+                    # CREATE SPECTRUM 3
                     print('Third Phase found.')
                     self.phasecount += 1
                     self.spectrum3 = XRFSpectrum()
                     readSpectrumParameters(self.pdzfilereader,self.spectrum3)
                     readSpectrumCounts(self.pdzfilereader,self.spectrum3)
-                    # print(readShort(self.pdzfilereader))
-                    # print(readInt(self.pdzfilereader))
-                    # print(readInt(self.pdzfilereader))
-                    # print(readInt(self.pdzfilereader))
-                    # print(readInt(self.pdzfilereader))
-                    # print(readShort(self.pdzfilereader))
-
+                    self.spectrum3.generateEnergies()
 
     def __repr__(self) -> str:
-        return f'{self.name} / {self.phasecount} phases / {self.datetime} / {self.instrumentSerialNumber}'
-        pass
+        return f'{self.name} / {self.phasecount} phase / {self.datetime} / {self.instrumentSerialNumber}'
 
 class XRFSpectrum:
     """Class to represent and contain data from a single 'phase' of a PDZ file."""
@@ -281,7 +286,7 @@ def elementSymboltoName(sym:str):
         try:
             i = elementSymbols.index(sym)
             return elementNames[i]
-        except:
+        except Exception:
             print('Element symbol unrecognised')
             return 'ERR'
     else:
@@ -294,7 +299,6 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def main():
-    
     pdzpath = filedialog.askopenfilename(title="Select PDZ File to view",filetypes=[("PDZ File", "*.pdz")], initialdir = os.getcwd())
     if pdzpath == '':
         exit()
@@ -303,11 +307,6 @@ def main():
     #pdzpath = resource_path('00148-GeoExploration.pdz')
     #pdzpath = resource_path('00002-Spectrometer Mode.pdz')
     assay = PDZFile(pdzpath)
-
-
-
-    
-    
 
     #plot stuff
     plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust figure size as needed
@@ -319,21 +318,15 @@ def main():
     plt.rcParams['path.simplify'] = False
     plt.style.use("seaborn-v0_8-whitegrid")
 
-    if assay.spectrum1.isNotEmpty():
-        print('phase 1 valid!')
-        assay.spectrum1.generateEnergies()
-        plt.plot(assay.spectrum1.energies, assay.spectrum1.counts)
-        plt.legend([assay.spectrum1.name])
-        if assay.spectrum2.isNotEmpty():
-            print('phase 2 valid!')
-            assay.spectrum2.generateEnergies()
-            plt.plot(assay.spectrum2.energies, assay.spectrum2.counts)
-            plt.legend([assay.spectrum1.name, assay.spectrum2.name])
-            if assay.spectrum3.isNotEmpty():
-                print('phase 3 valid!')
-                assay.spectrum3.generateEnergies()
-                plt.plot(assay.spectrum3.energies, assay.spectrum3.counts)
-                plt.legend([assay.spectrum1.name, assay.spectrum2.name, assay.spectrum3.name])
+
+    plt.plot(assay.spectrum1.energies, assay.spectrum1.counts)
+    plt.legend([assay.spectrum1.name])
+    if assay.phasecount > 1:
+        plt.plot(assay.spectrum2.energies, assay.spectrum2.counts)
+        plt.legend([assay.spectrum1.name, assay.spectrum2.name])
+        if assay.phasecount > 2:
+            plt.plot(assay.spectrum3.energies, assay.spectrum3.counts)
+            plt.legend([assay.spectrum1.name, assay.spectrum2.name, assay.spectrum3.name])
 
     
     print(assay)
