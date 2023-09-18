@@ -235,6 +235,7 @@ class XRFSpectrum:
         # temp / pressure
         self.detectorTempInC = 0.0
         self.ambientTempInF = 0.0
+        self.ambientTempInC = 0.0
         self.noseTempInC = 0.0
         self.nosePressure = 0.0
 
