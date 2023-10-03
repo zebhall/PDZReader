@@ -62,33 +62,33 @@ plt.plot(raw_df['Energy'], raw_df['Counts'])
 
 
 
-plt.show()
-
-
-
-
-
-# # Attempt 1
-# 
-# # try to get delta array
-# counts_delta = []
-# for i in range(len(counts)):
-#     try:
-#         counts_delta.append(counts[i]-counts[i-1])
-#     except:
-#         counts_delta.append(0)
-# # print(counts_delta)
-# counts_delta = np.array(counts_delta)
-# peak_energies = []
-# i = 0
-# previous_cd = 0
-# for i in range(len(counts_delta)):
-#         if (counts_delta[i] > 0) and (counts_delta[i+1] < 0) and counts[i]>600 and (counts_delta[i]-counts_delta[i+1]>170):
-#             peak_energies.append(energies[i])
-#             plt.axvline(x = energies[i], color = 'g', ymin=0, linestyle = 'dashed', linewidth= '1', label = energies[i])
-#             plt.text(energies[i],0,energies[i],rotation=270,rotation_mode='anchor', color='g', size=8)
-# plt.plot(energies, counts)
-# plt.plot(energies, counts_delta)
-# #plt.legend()
-# print(peak_energies)
 # plt.show()
+
+
+
+
+
+# Attempt 1
+
+# try to get delta array
+counts_delta = []
+for i in range(len(counts)):
+    try:
+        counts_delta.append(counts[i]-counts[i-1])
+    except:
+        counts_delta.append(0)
+# print(counts_delta)
+counts_delta = np.array(counts_delta)
+peak_energies = []
+i = 0
+previous_cd = 0
+for i in range(len(counts_delta)):
+        if (counts_delta[i] > 0) and (counts_delta[i+1] < 0) and counts[i]>600 and (counts_delta[i]-counts_delta[i+1]>170):
+            peak_energies.append(energies[i])
+            plt.axvline(x = energies[i], color = 'g', ymin=0, linestyle = 'dashed', linewidth= '1', label = energies[i])
+            plt.text(energies[i],0,energies[i],rotation=270,rotation_mode='anchor', color='g', size=8)
+plt.plot(energies, counts)
+plt.plot(energies, counts_delta)
+#plt.legend()
+print(peak_energies)
+plt.show()
