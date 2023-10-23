@@ -8,21 +8,102 @@ import flet as ft
 
 
 class SpectrumViewer(ft.UserControl):
-    def build(self):
-        self.
+    def __init__(self, title, s1_energies:list=None, s1_counts:list=None,s2_energies:list=None, s2_counts:list=None,s3_energies:list=None, s3_counts:list=None,):
+        super().__init__()
+        self.title = title
+        self.s1_energies = s1_energies
+        self.s1_counts = s1_counts
+        self.s2_energies = s2_energies
+        self.s2_counts = s2_counts   
+        self.s3_energies = s3_energies
+        self.s3_counts = s3_counts
+        self.s1_points = []
+        self.s2_points = []
+        self.s3_points = []
+        self.chartdata = []
+
+        # create data point lists
+        if self.s1_energies and self.s1_counts:
+            for energy, count in zip(self.s1_energies,self.s1_counts):
+                self.s1_points.append(ft.LineChartDataPoint(x=energy,y=count))
+            self.s1_chartdata = ft.LineChartData(
+                data_points = self.s1_points,
+                stroke_width = 2,
+                color = ft.colors.CYAN,
+                curved = True
+            )
+            self.chartdata.append(self.s1_chartdata)
+        
+        if self.s2_energies and self.s2_counts:
+            for energy, count in zip(self.s2_energies,self.s2_counts):
+                self.s2_points.append(ft.LineChartDataPoint(x=energy,y=count))
+            self.s2_chartdata = ft.LineChartData(
+                data_points = self.s2_points,
+                stroke_width = 2,
+                color = ft.colors.INDIGO,
+                curved = True
+            )
+            self.chartdata.append(self.s2_chartdata)
+
+        if self.s3_energies and self.s3_counts:
+            for energy, count in zip(self.s3_energies,self.s3_counts):
+                self.s3_points.append(ft.LineChartDataPoint(x=energy,y=count))
+            self.s3_chartdata = ft.LineChartData(
+                data_points = self.s3_points,
+                stroke_width = 2,
+                color = ft.colors.TEAL,
+                curved = True
+            )
+            self.chartdata.append(self.s3_chartdata)
+
+
+        self.chart = ft.LineChart(
+            data_series = self.chartdata,
+            border = ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
+            horizontal_grid_lines = ft.ChartGridLines(interval=5000, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1),
+            vertical_grid_lines = ft.ChartGridLines(interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1),
+            tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
+            min_y=0,
+            max_y=max(max(self.s1_counts),max(self.s2_counts),max(self.s3_counts))*1.2,
+            min_x=0,
+            max_x=50,
+            # animate=5000,
+            expand=True,
+        )
+
+    def build(self) -> ft.Row:
+        return ft.Row(controls = [self.chart],
+                      alignment = ft.MainAxisAlignment.CENTER,
+                      expand=True)
         
 
 
 
 
-
-
-
 def main(page: ft.Page) -> None:
+    # initial window settings
     page.title = 'PDZView'
-    
-    spectrumview = SpectrumViewer
+    page.expand = True
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
+    # get pdz data
+    pdz = PDZFile('00093-GeoExploration.pdz')
+
+
+    # create widgets
+    viewer = SpectrumViewer(title='pdz',
+                            s1_energies = pdz.spectrum1.energies,
+                            s1_counts = pdz.spectrum1.counts,
+                            s2_energies = pdz.spectrum2.energies,
+                            s2_counts = pdz.spectrum2.counts,
+                            s3_energies = pdz.spectrum3.energies,
+                            s3_counts = pdz.spectrum3.counts)
+
+    # add widgets
+    page.add(viewer)
+
+
+    
 
 
 
