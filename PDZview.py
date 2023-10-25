@@ -5,7 +5,9 @@ versionDate = '2023/10/24'
 from PDZreader import PDZFile
 import flet as ft
 
-
+class App:
+    def __init__(self, page:ft.Page):
+        self.page = page
 
 class SpectrumViewer(ft.UserControl):
     def __init__(self, title, s1_energies:list=None, s1_counts:list=None,s2_energies:list=None, s2_counts:list=None,s3_energies:list=None, s3_counts:list=None,):
@@ -29,8 +31,8 @@ class SpectrumViewer(ft.UserControl):
             self.s1_chartdata = ft.LineChartData(
                 data_points = self.s1_points,
                 stroke_width = 2,
-                color = ft.colors.CYAN,
-                curved = True
+                color = ft.colors.BLUE,
+                curved = False
             )
             self.chartdata.append(self.s1_chartdata)
         
@@ -40,8 +42,8 @@ class SpectrumViewer(ft.UserControl):
             self.s2_chartdata = ft.LineChartData(
                 data_points = self.s2_points,
                 stroke_width = 2,
-                color = ft.colors.INDIGO,
-                curved = True
+                color = ft.colors.GREEN,
+                curved = False
             )
             self.chartdata.append(self.s2_chartdata)
 
@@ -51,8 +53,8 @@ class SpectrumViewer(ft.UserControl):
             self.s3_chartdata = ft.LineChartData(
                 data_points = self.s3_points,
                 stroke_width = 2,
-                color = ft.colors.TEAL,
-                curved = True
+                color = ft.colors.PINK,
+                curved = False
             )
             self.chartdata.append(self.s3_chartdata)
 
@@ -64,14 +66,14 @@ class SpectrumViewer(ft.UserControl):
             vertical_grid_lines = ft.ChartGridLines(interval=5, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE), width=1),
             tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
             min_y=0,
-            max_y=max(max(self.s1_counts),max(self.s2_counts),max(self.s3_counts))*1.2,
+            #max_y=max(max(self.s1_counts),max(self.s2_counts),max(self.s3_counts))*1.2,
             min_x=0,
             max_x=50,
             expand=True,
         )
 
     def build(self):
-        return ft.Row(controls = [self.chart],
+        return ft.ResponsiveRow(controls = [self.chart],
                             height = 600,
                             # alignment = ft.MainAxisAlignment.CENTER,
                             expand=True)
@@ -89,7 +91,6 @@ def main(page: ft.Page) -> None:
     # get pdz data
     pdz = PDZFile('00093-GeoExploration.pdz')
 
-
     # create widgets
     viewer = SpectrumViewer(title='pdz',
                             s1_energies = pdz.spectrum1.energies,
@@ -99,22 +100,19 @@ def main(page: ft.Page) -> None:
                             s3_energies = pdz.spectrum3.energies,
                             s3_counts = pdz.spectrum3.counts)
 
+    
+
     # add widgets
     page.add(viewer)
     page.update()
 
 
     # resize logic
-    def page_resize(e):
-        viewer.height = page.window_height
-        viewer.width = page.window_width
-        
-        viewer.update()
-    
-    page.on_resize = page_resize
-
-
-
+    # def page_resize(e):
+    #     viewer.height = page.window_height
+    #     viewer.width = page.window_width
+    #     viewer.update()
+    # page.on_resize = page_resize
 
 
 
