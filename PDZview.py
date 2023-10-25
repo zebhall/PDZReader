@@ -1,6 +1,6 @@
 # PDZview by ZH
-versionNum = 'v0.0.1'
-versionDate = '2023/09/28'
+versionNum = 'v0.0.3'
+versionDate = '2023/10/24'
 
 from PDZreader import PDZFile
 import flet as ft
@@ -67,14 +67,14 @@ class SpectrumViewer(ft.UserControl):
             max_y=max(max(self.s1_counts),max(self.s2_counts),max(self.s3_counts))*1.2,
             min_x=0,
             max_x=50,
-            # animate=5000,
             expand=True,
         )
 
-    def build(self) -> ft.Row:
+    def build(self):
         return ft.Row(controls = [self.chart],
-                      alignment = ft.MainAxisAlignment.CENTER,
-                      expand=True)
+                            height = 600,
+                            # alignment = ft.MainAxisAlignment.CENTER,
+                            expand=True)
         
 
 
@@ -84,7 +84,7 @@ def main(page: ft.Page) -> None:
     # initial window settings
     page.title = 'PDZView'
     page.expand = True
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.vertical_alignment = ft.MainAxisAlignment.SPACE_EVENLY
 
     # get pdz data
     pdz = PDZFile('00093-GeoExploration.pdz')
@@ -101,9 +101,18 @@ def main(page: ft.Page) -> None:
 
     # add widgets
     page.add(viewer)
+    page.update()
 
 
+    # resize logic
+    def page_resize(e):
+        viewer.height = page.window_height
+        viewer.width = page.window_width
+        
+        viewer.update()
     
+    page.on_resize = page_resize
+
 
 
 
