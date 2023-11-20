@@ -21,6 +21,7 @@ class SpectrumPlot(ft.UserControl):
         s2_counts: list = None,
         s3_energies: list = None,
         s3_counts: list = None,
+        pick_peaks: bool = False,
     ):
         super().__init__()
         self.title = title
@@ -69,6 +70,7 @@ class SpectrumPlot(ft.UserControl):
             )
             self.chartdata.append(self.s3_chartdata)
 
+        # create chart object
         self.chart = ft.LineChart(
             data_series=self.chartdata,
             border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
