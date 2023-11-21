@@ -3,7 +3,10 @@ versionNum = "v0.0.3"
 versionDate = "2023/10/24"
 
 from PDZreader import PDZFile
+import plotly.express as px
 import flet as ft
+from flet.plotly_chart import PlotlyChart
+import pandas as pd
 
 
 class App:
@@ -31,74 +34,40 @@ class SpectrumPlot(ft.UserControl):
         self.s2_counts = s2_counts
         self.s3_energies = s3_energies
         self.s3_counts = s3_counts
-        self.s1_points = []
-        self.s2_points = []
-        self.s3_points = []
-        self.chartdata = []
+        print(len(self.s1_energies))
+        print(len(self.s1_counts))
 
-        # create data point lists
-        if self.s1_energies and self.s1_counts:
-            for energy, count in zip(self.s1_energies, self.s1_counts):
-                self.s1_points.append(ft.LineChartDataPoint(x=energy, y=count))
-            self.s1_chartdata = ft.LineChartData(
-                data_points=self.s1_points,
-                stroke_width=2,
-                color=ft.colors.BLUE,
-                curved=False,
-            )
-            self.chartdata.append(self.s1_chartdata)
-
-        if self.s2_energies and self.s2_counts:
-            for energy, count in zip(self.s2_energies, self.s2_counts):
-                self.s2_points.append(ft.LineChartDataPoint(x=energy, y=count))
-            self.s2_chartdata = ft.LineChartData(
-                data_points=self.s2_points,
-                stroke_width=2,
-                color=ft.colors.GREEN,
-                curved=False,
-            )
-            self.chartdata.append(self.s2_chartdata)
-
-        if self.s3_energies and self.s3_counts:
-            for energy, count in zip(self.s3_energies, self.s3_counts):
-                self.s3_points.append(ft.LineChartDataPoint(x=energy, y=count))
-            self.s3_chartdata = ft.LineChartData(
-                data_points=self.s3_points,
-                stroke_width=2,
-                color=ft.colors.PINK,
-                curved=False,
-            )
-            self.chartdata.append(self.s3_chartdata)
-
-        # create chart object
-        self.chart = ft.LineChart(
-            data_series=self.chartdata,
-            border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
-            horizontal_grid_lines=ft.ChartGridLines(
-                interval=5000,
-                color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
-                width=1,
-            ),
-            vertical_grid_lines=ft.ChartGridLines(
-                interval=5,
-                color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
-                width=1,
-            ),
-            tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
-            min_y=0,
-            # max_y=max(max(self.s1_counts),max(self.s2_counts),max(self.s3_counts))*1.2,
-            min_x=0,
-            max_x=50,
-            expand=True,
+        self.df1 = pd.DataFrame(
+            data={
+                "phase": [1] * 2048,
+                "energy": self.s1_energies,
+                "counts": self.s1_counts,
+            }
         )
+        self.df2 = pd.DataFrame(
+            data={
+                "phase": [2] * 2048,
+                "energy": self.s2_energies,
+                "counts": self.s2_counts,
+            }
+        )
+        self.df3 = pd.DataFrame(
+            data={
+                "phase": [3] * 2048,
+                "energy": self.s3_energies,
+                "counts": self.s3_counts,
+            }
+        )
+
+        self.df = pd.concat([self.df1, self.df2, self.df3])
+
+        # create figure
+        self.fig = px.line(self.df, x="energy", y="counts", color="phase")
+
+        # create data point df
 
     def build(self):
-        return ft.Row(
-            controls=[self.chart],
-            # height=600,
-            # alignment = ft.MainAxisAlignment.CENTER,
-            expand=True,
-        )
+        return PlotlyChart(self.fig, expand=True)
 
 
 def main(page: ft.Page) -> None:
