@@ -1,4 +1,4 @@
-# PDZview by ZH
+# PDZview testing doc by ZH
 versionNum = "v0.0.3"
 versionDate = "2023/10/24"
 
@@ -14,7 +14,7 @@ class App:
         self.page = page
 
 
-class SpectrumPlot(ft.UserControl):
+class SpectrumPlottable:
     def __init__(
         self,
         title,
@@ -26,7 +26,6 @@ class SpectrumPlot(ft.UserControl):
         s3_counts: list = None,
         pick_peaks: bool = False,
     ):
-        super().__init__()
         self.title = title
         self.s1_energies = s1_energies
         self.s1_counts = s1_counts
@@ -34,8 +33,6 @@ class SpectrumPlot(ft.UserControl):
         self.s2_counts = s2_counts
         self.s3_energies = s3_energies
         self.s3_counts = s3_counts
-        print(len(self.s1_energies))
-        print(len(self.s1_counts))
 
         self.df1 = pd.DataFrame(
             data={
@@ -60,28 +57,26 @@ class SpectrumPlot(ft.UserControl):
         )
 
         self.df = pd.concat([self.df1, self.df2, self.df3])
+        # print(self.df)
 
         # create figure
-        self.fig = px.line(self.df, x="energy", y="counts", color="phase")
+        fig = px.line(self.df, x="energy", y="counts", color="phase")
+        # self.fig.show()
 
-        # create data point df
-
-    def build(self):
-        return PlotlyChart(self.fig, expand=True)
+        # create PlotlyChart obj
+        self.chart = PlotlyChart(fig, expand=True)
 
 
 def main(page: ft.Page) -> None:
     # initial window settings
     page.title = "PDZView"
-    page.expand = True
-    page.vertical_alignment = ft.MainAxisAlignment.SPACE_EVENLY
     page.padding = 20
 
     # get pdz data
     pdz = PDZFile("00093-GeoExploration.pdz")
 
     # create widgets
-    viewer = SpectrumPlot(
+    plottable_pdz = SpectrumPlottable(
         title="pdz",
         s1_energies=pdz.spectrum1.energies,
         s1_counts=pdz.spectrum1.counts,
@@ -91,8 +86,11 @@ def main(page: ft.Page) -> None:
         s3_counts=pdz.spectrum3.counts,
     )
 
+    fig = px.line(plottable_pdz.df, x="energy", y="counts", color="phase")
+    fig.show()
+
     # add widgets
-    page.add(viewer)
+    page.add(PlotlyChart(fig, expand=False))
 
     # resize logic
     # def page_resize(e):

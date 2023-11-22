@@ -1,14 +1,18 @@
 # PDZreader by zh
-versionNum = "v0.1.5"
-versionDate = "2023/09/21"
+versionNum = "v0.1.6"
+versionDate = "2023/11/22"
 
 import struct
 import os
 import sys
 from datetime import datetime as dt
 import logging as log
-import matplotlib.pyplot as plt
+from functools import cached_property
+
+# import matplotlib.pyplot as plt
 from tkinter import filedialog
+import pandas as pd
+import plotly_express as px
 
 
 class PDZFile:
@@ -17,9 +21,8 @@ class PDZFile:
     def __init__(self, pdz_file_path: str):
         self.name = os.path.basename(pdz_file_path)
         self.readPDZFileData(pdz_file_path)
-        self.datetime = (
-            self.spectrum1.datetime
-        )  # pdz as a whole should use first phase datetime?
+        self.datetime = self.spectrum1.datetime
+        # pdz as a whole should use first phase datetime?
 
     def readPDZFileData(self, pdz_file_path: str):
         def readByte(reader):
@@ -274,9 +277,62 @@ class PDZFile:
                     readSpectrumCounts(self.pdzfilereader, self.spectrum3)
                     self.spectrum3.generateEnergies()
 
+    @cached_property
+    def plottableDataFrame(self):
+        """Create the dataframe(s) used for plotting with plotly. only needs to be run once, so this is done in a separate function to use @cached_property."""
+        self.df1 = pd.DataFrame(
+            data={
+                "Phase": [
+                    f"{self.spectrum1.sourceVoltage:.0f}kV {self.spectrum1.sourceCurrent:.2f}uA / {self.spectrum1.filterDesciption}"
+                ]
+                * 2048,
+                "Energy (keV)": self.spectrum1.energies,
+                "Counts": self.spectrum1.counts,
+            }
+        )
+        try:
+            self.df2 = pd.DataFrame(
+                data={
+                    "Phase": [
+                        f"{self.spectrum2.sourceVoltage:.0f}kV {self.spectrum2.sourceCurrent:.2f}uA / {self.spectrum2.filterDesciption}"
+                    ]
+                    * 2048,
+                    "Energy (keV)": self.spectrum2.energies,
+                    "Counts": self.spectrum2.counts,
+                }
+            )
+        except AttributeError:
+            self.df2 = pd.DataFrame()
+
+        try:
+            self.df3 = pd.DataFrame(
+                data={
+                    "Phase": [
+                        f"{self.spectrum3.sourceVoltage:.0f}kV {self.spectrum3.sourceCurrent:.2f}uA / {self.spectrum3.filterDesciption}"
+                    ]
+                    * 2048,
+                    "Energy (keV)": self.spectrum3.energies,
+                    "Counts": self.spectrum3.counts,
+                }
+            )
+        except AttributeError:
+            self.df3 = pd.DataFrame()
+
+        # create dataframe of all phases, and return it
+        return pd.concat([self.df1, self.df2, self.df3])
+
+    def plot(self):
+        """Call this function to plot the pdz spectra in a plotly graph, in a new browser window."""
+        # create and show figure. dfs are created when this is run first time.
+        self.fig = px.line(
+            self.plottableDataFrame, x="Energy (keV)", y="Counts", color="Phase"
+        )
+        self.fig.update_layout(
+            legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99)
+        )
+        return self.fig.show()
+
     def __repr__(self) -> str:
-        # attrs = vars(self)
-        # return attrs
         return f"{self.name} / {self.phasecount} phase / {self.datetime} / {self.instrumentSerialNumber}"
 
 
@@ -285,9 +341,8 @@ class XRFSpectrum:
 
     def __init__(self):
         self.name = ""
-        self.datetime = dt(
-            1970, 1, 1, 0, 0, 0
-        )  # using unix timestamp 0-time as default.
+        self.datetime = dt(1970, 1, 1, 0, 0, 0)
+        # using unix timestamp 0-time as default.
         self.counts = []
         self.energies = []
         self.energyPerChannel = 20  # in eV
@@ -314,13 +369,14 @@ class XRFSpectrum:
     def __repr__(self):  # used for print() of class
         return (self.name, self.datetime, self.sourceVoltage, self.sourceCurrent)
 
-    def isNotEmpty(self):
+    def isNotEmpty(self) -> bool:
+        """returns true if spectrum is valid i.e. has counts data"""
         if self.counts == []:
             return False
         else:
             return True
 
-    def generateEnergies(self):
+    def generateEnergies(self) -> list[float]:
         self.energies = list(
             ((i * self.energyPerChannel + self.energyChannelStart) * 0.001)
             for i in range(0, self.numberOfChannels)
@@ -329,7 +385,8 @@ class XRFSpectrum:
         return self.energies
 
 
-def elementZtoSymbol(Z):  # Returns 1-2 character Element symbol as a string
+def elementZtoSymbol(Z: int) -> str:
+    """Returns 1-2 character Element symbol as a string"""
     if Z == 0:
         return ""
     elif Z <= 118:
@@ -459,9 +516,8 @@ def elementZtoSymbol(Z):  # Returns 1-2 character Element symbol as a string
         return "ERR"
 
 
-def elementZtoSymbolZ(
-    Z,
-):  # Returns 1-2 character Element symbol formatted WITH atomic number in brackets
+def elementZtoSymbolZ(Z: int) -> str:
+    """Returns 1-2 character Element symbol formatted WITH atomic number in brackets"""
     if Z <= 118:
         elementSymbols = [
             "H (1)",
@@ -984,36 +1040,33 @@ def main():
     )
     if pdzpath == "":
         exit()
-    # pdzpath = resource_path('00156-REE_IDX.pdz')
-    # pdzpath = resource_path('00093-GeoExploration.pdz')
-    # pdzpath = resource_path('00148-GeoExploration.pdz')
-    # pdzpath = resource_path('00002-Spectrometer Mode.pdz')
+
     assay = PDZFile(pdzpath)
     print(f"PDZ File Loaded: {assay}")
+    # shiny new inbuilt plotly functionality
+    assay.plot()
 
-    # plot stuff
-    plt.set_loglevel("error")
-    plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust figure size as needed
-    plt.xlabel("Energy (keV)")
-    plt.ylabel("Counts")
-    plt.title(f"{assay.instrumentSerialNumber} - {assay.name}")
-    plt.grid(True, which="major", axis="both")
-    plt.minorticks_on()
-    plt.rcParams["path.simplify"] = False
-    plt.style.use("seaborn-v0_8-whitegrid")
-
-    plt.plot(assay.spectrum1.energies, assay.spectrum1.counts)
-    plt.legend([assay.spectrum1.name])
-    if assay.phasecount > 1:
-        plt.plot(assay.spectrum2.energies, assay.spectrum2.counts)
-        plt.legend([assay.spectrum1.name, assay.spectrum2.name])
-        if assay.phasecount > 2:
-            plt.plot(assay.spectrum3.energies, assay.spectrum3.counts)
-            plt.legend(
-                [assay.spectrum1.name, assay.spectrum2.name, assay.spectrum3.name]
-            )
-
-    plt.show()
+    # old matplotlib plot stuff
+    # plt.set_loglevel("error")
+    # plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust figure size as needed
+    # plt.xlabel("Energy (keV)")
+    # plt.ylabel("Counts")
+    # plt.title(f"{assay.instrumentSerialNumber} - {assay.name}")
+    # plt.grid(True, which="major", axis="both")
+    # plt.minorticks_on()
+    # plt.rcParams["path.simplify"] = False
+    # plt.style.use("seaborn-v0_8-whitegrid")
+    # plt.plot(assay.spectrum1.energies, assay.spectrum1.counts)
+    # plt.legend([assay.spectrum1.name])
+    # if assay.phasecount > 1:
+    #     plt.plot(assay.spectrum2.energies, assay.spectrum2.counts)
+    #     plt.legend([assay.spectrum1.name, assay.spectrum2.name])
+    #     if assay.phasecount > 2:
+    #         plt.plot(assay.spectrum3.energies, assay.spectrum3.counts)
+    #         plt.legend(
+    #             [assay.spectrum1.name, assay.spectrum2.name, assay.spectrum3.name]
+    #         )
+    # plt.show()
 
 
 if __name__ == "__main__":
