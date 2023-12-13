@@ -78,11 +78,12 @@ class PDZFile:
             log.debug(readFloatSingle(reader))
 
             spectrum.timeElapsedTotal = readFloatSingle(reader)
-            log.info("total time elapsed: " + str(spectrum.timeElapsedTotal))
-            log.debug(f"some other time value?: {readFloatSingle(reader)}")
+            log.info(f"total time elapsed: {str(spectrum.timeElapsedTotal)}")
+            log.debug(f"time elapsed (other??): {readFloatSingle(reader)}")
             log.debug(readFloatSingle(reader))
             log.debug(readFloatSingle(reader))
-            log.debug(readFloatSingle(reader))
+            spectrum.timeLive = readFloatSingle(reader)
+            log.info(f"LIVE TIME (phase): {spectrum.timeLive}")
 
             spectrum.sourceVoltage = readFloatSingle(reader)
             log.info(f"Source Voltage: {spectrum.sourceVoltage}")
