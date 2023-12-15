@@ -29,8 +29,8 @@ def sanityCheckSpectrum(
     # print(f"spectrum std dev = {std_dev}")
 
     # Set a threshold for noise detection (too small might be prone to noise, too high isn't useful. starting with stddev/100.)
-    threshold = std_dev / 100
-    # print(f"{threshold=}")
+    threshold = std_dev / 50
+    print(f"{threshold=}")
 
     # reverse iterate list to search backwards - no zero peak to worry about, and generally should be faster.
     for i in range(len(spectrum_counts) - 1, 0, -1):
@@ -43,7 +43,9 @@ def sanityCheckSpectrum(
         peak_index = None
 
     if peak_index is not None:
-        # print(f"Latest point with a peak above noise: energy={spectrum_energies[peak_index]}, counts={spectrum_counts[peak_index]}")
+        print(
+            f"Latest point with a peak above noise: energy={spectrum_energies[peak_index]}, counts={spectrum_counts[peak_index]}"
+        )
         if spectrum_energies[peak_index] < source_voltage_in_kV:
             # this point should be LOWER than source voltage *almost* always. some exclusions, incl. sum peaks, but those should be niche.
             return True
@@ -56,9 +58,11 @@ def sanityCheckSpectrum(
 
 
 def main():
-    assay = PDZFile("00156-REE_IDX.pdz")
+    # assay = PDZFile("01142-GeoExploration-FAIL20231214.pdz")
+    # assay = PDZFile("00156-REE_IDX.pdz")
     # assay = PDZFile("00007-Spectrometer Mode.pdz")
-    # assay = PDZFile("00091-GeoExploration.pdz")
+    # assay = PDZFile("00007-GeoExploration-SiO2.pdz")
+    assay = PDZFile("00279-GeoExploration-SiO2-180s.pdz")
     # assay = PDZFile("00148-GeoExploration.pdz")
     # assay = PDZFile("00020-AuPathfinder.pdz")
     print(f"{assay.spectrum1.sourceVoltage=}")
