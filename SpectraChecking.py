@@ -31,9 +31,25 @@ def sanityCheckSpectrum(
 ) -> bool:
     """Checks that a spectrum is sensible, and that the listed voltage is accurate. This is required because of a bug in Bruker pXRF instrument software, sometimes causing phases of an assay to use an incorrect voltage. Returns TRUE if sanity check passed, return FALSE if not."""
 
-    # Set a threshold for noise detection (too small might be prone to noise, too high isn't useful. starting with stddev/100.)
-    std_dev = np.std(spectrum_counts)
-    threshold = std_dev / 50
+    # basic method - Set a threshold for noise detection (too small might be prone to noise, too high isn't useful. starting with stddev/100.)
+    # std_dev = np.std(spectrum_counts)
+    # threshold = std_dev / 50
+
+    # trying method using stddev and mean of last 10-20 bins, plus check for 40+kv excitation
+    noise_mean = np.mean(spectrum_counts[-20:])
+    noise_std_dev = np.std(spectrum_counts[-20:])
+    print(f"{noise_mean=}, {noise_std_dev=}")
+    test_threshold = noise_mean + (10 * noise_std_dev)
+    # if excitation is >40kV (end of spectrum) then this will be unecessary, so need to check for that. trying max reasonable noise mean counts is 3*spectrum_live_time_in_s
+    if noise_mean > (3 * spectrum_live_time_in_s):
+        # set to 1 so that it instantly flags.
+        test_threshold = 1
+    # also fails if counts are 0/1/0/0/1 etc then this won't work. must implement floor. trying min floor assuming 1 count per live second
+    elif test_threshold < (1 * spectrum_live_time_in_s):
+        test_threshold = 1 * spectrum_live_time_in_s
+
+    threshold = test_threshold
+
     # noise_mean = np.mean(spectrum_counts[-20:])
     # print(f"{noise_mean=}, {spectrum_live_time_in_s=}")
     # if noise_mean < 2:
@@ -85,13 +101,13 @@ def sanityCheckSpectrum(
 
 
 def main():
-    # assay = PDZFile("01142-GeoExploration-FAIL20231214.pdz")
+    assay = PDZFile("01142-GeoExploration-FAIL20231214.pdz")
     # assay = PDZFile("00156-REE_IDX.pdz")
     # assay = PDZFile("00007-Spectrometer Mode.pdz")
     # assay = PDZFile("00007-GeoExploration-SiO2.pdz")
     # assay = PDZFile("00279-GeoExploration-SiO2-180s.pdz")
     # assay = PDZFile("00148-GeoExploration.pdz")
-    assay = PDZFile("00020-AuPathfinder.pdz")
+    # assay = PDZFile("00020-AuPathfinder.pdz")
 
     # print(f"{assay.spectrum1.sourceVoltage=}")
     # print(f"{assay.spectrum1.timeLive=}")
@@ -111,7 +127,7 @@ def main():
             spectrum_live_time_in_s=assay.spectrum2.timeLive,
         )
     except AttributeError:
-        print("no phase 2 present in pdz")
+        print("No Phase 2 present in pdz")
     try:
         # print(f"{assay.spectrum3.sourceVoltage=}")
         # print(f"{assay.spectrum3.timeLive=}")
@@ -122,7 +138,7 @@ def main():
             spectrum_live_time_in_s=assay.spectrum3.timeLive,
         )
     except AttributeError:
-        print("no phase 3 present in pdz")
+        print("No Phase 3 present in pdz")
 
     assay.plot()
 
