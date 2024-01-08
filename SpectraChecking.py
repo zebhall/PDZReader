@@ -22,6 +22,35 @@ def timeit(func):
     return timeit_wrapper
 
 
+def sanityCheckSpectrum_sumMethod(
+    spectrum_counts: list,
+    spectrum_energies: list,
+    source_voltage_in_kV: int,
+    spectrum_live_time_in_s: float,
+) -> bool:
+    """Checks that a spectrum is sensible, and that the listed voltage is accurate. This is required because of a bug in Bruker pXRF instrument software, sometimes causing phases of an assay to use an incorrect voltage. Returns TRUE if sanity check passed, return FALSE if not."""
+    counts_sum = np.sum(spectrum_counts)
+    two_percent_counts_threshold = counts_sum * 0.02
+    sum_counting = 0
+    for i in range(len(spectrum_counts) - 1, 0, -1):
+        sum_counting += spectrum_counts[i]
+        if sum_counting > two_percent_counts_threshold:
+            # Found a peak above the noise threshold
+            abovethreshold_index = i
+            break
+    if spectrum_energies[abovethreshold_index] < source_voltage_in_kV:
+        # this point should be LOWER than source voltage always.
+        print(
+            f"PASSED: {source_voltage_in_kV}kV phase, threshold point: {spectrum_energies[abovethreshold_index]}"
+        )
+        return True
+    else:
+        print(
+            f"FAILED: {source_voltage_in_kV}kV phase, threshold point: {spectrum_energies[abovethreshold_index]}"
+        )
+        return False
+
+
 # @timeit
 def sanityCheckSpectrum(
     spectrum_counts: list,
@@ -38,6 +67,7 @@ def sanityCheckSpectrum(
     # trying method using stddev and mean of last 10-20 bins, plus check for 40+kv excitation
     noise_mean = np.mean(spectrum_counts[-20:])
     noise_std_dev = np.std(spectrum_counts[-20:])
+
     print(f"{noise_mean=}, {noise_std_dev=}")
     test_threshold = noise_mean + (10 * noise_std_dev)
     # if excitation is >40kV (end of spectrum) then this will be unecessary, so need to check for that. trying max reasonable noise mean counts is 3*spectrum_live_time_in_s
@@ -108,10 +138,18 @@ def main():
     # assay = PDZFile("00279-GeoExploration-SiO2-180s.pdz")
     # assay = PDZFile("00148-GeoExploration.pdz")
     # assay = PDZFile("00020-AuPathfinder.pdz")
-
+    # assay = PDZFile("00332-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00333-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00334-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00335-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00336-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00337-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00338-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("00339-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("Fe-Mn-SumPeak-Example_00020-AuPathfinder.pdz")
     # print(f"{assay.spectrum1.sourceVoltage=}")
     # print(f"{assay.spectrum1.timeLive=}")
-    sanityCheckSpectrum(
+    sanityCheckSpectrum_sumMethod(
         spectrum_counts=assay.spectrum1.counts,
         spectrum_energies=assay.spectrum1.energies,
         source_voltage_in_kV=int(assay.spectrum1.sourceVoltage),
@@ -120,7 +158,7 @@ def main():
     try:
         # print(f"{assay.spectrum2.sourceVoltage=}")
         # print(f"{assay.spectrum2.timeLive=}")
-        sanityCheckSpectrum(
+        sanityCheckSpectrum_sumMethod(
             spectrum_counts=assay.spectrum2.counts,
             spectrum_energies=assay.spectrum2.energies,
             source_voltage_in_kV=int(assay.spectrum2.sourceVoltage),
@@ -131,7 +169,7 @@ def main():
     try:
         # print(f"{assay.spectrum3.sourceVoltage=}")
         # print(f"{assay.spectrum3.timeLive=}")
-        sanityCheckSpectrum(
+        sanityCheckSpectrum_sumMethod(
             spectrum_counts=assay.spectrum3.counts,
             spectrum_energies=assay.spectrum3.energies,
             source_voltage_in_kV=int(assay.spectrum3.sourceVoltage),
