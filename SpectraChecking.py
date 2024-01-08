@@ -26,7 +26,6 @@ def sanityCheckSpectrum_sumMethod(
     spectrum_counts: list,
     spectrum_energies: list,
     source_voltage_in_kV: int,
-    spectrum_live_time_in_s: float,
 ) -> bool:
     """Checks that a spectrum is sensible, and that the listed voltage is accurate. This is required because of a bug in Bruker pXRF instrument software, sometimes causing phases of an assay to use an incorrect voltage. Returns TRUE if sanity check passed, return FALSE if not."""
     counts_sum = np.sum(spectrum_counts)
@@ -35,7 +34,6 @@ def sanityCheckSpectrum_sumMethod(
     for i in range(len(spectrum_counts) - 1, 0, -1):
         sum_counting += spectrum_counts[i]
         if sum_counting > two_percent_counts_threshold:
-            # Found a peak above the noise threshold
             abovethreshold_index = i
             break
     if spectrum_energies[abovethreshold_index] < source_voltage_in_kV:
