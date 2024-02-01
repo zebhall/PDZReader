@@ -129,53 +129,45 @@ def sanityCheckSpectrum(
 
 
 def main():
-    assay = PDZFile("01142-GeoExploration-FAIL20231214.pdz")
-    # assay = PDZFile("00156-REE_IDX.pdz")
-    # assay = PDZFile("00007-Spectrometer Mode.pdz")
-    # assay = PDZFile("00007-GeoExploration-SiO2.pdz")
-    # assay = PDZFile("00279-GeoExploration-SiO2-180s.pdz")
-    # assay = PDZFile("00148-GeoExploration.pdz")
-    # assay = PDZFile("00020-AuPathfinder.pdz")
-    # assay = PDZFile("00332-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00333-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00334-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00335-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00336-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00337-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00338-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("00339-GeoExploration-VOLTAGEBUGGED.pdz")
-    # assay = PDZFile("Fe-Mn-SumPeak-Example_00020-AuPathfinder.pdz")
+    # assay = PDZFile("PDZ for test/01142-GeoExploration-FAIL20231214.pdz")
+    # assay = PDZFile("PDZ for test/00156-REE_IDX.pdz")
+    assay = PDZFile("PDZ for test/00007-Spectrometer Mode.pdz")
+    # assay = PDZFile("PDZ for test/00007-GeoExploration-SiO2.pdz")
+    # assay = PDZFile("PDZ for test/00279-GeoExploration-SiO2-180s.pdz")
+    # assay = PDZFile("PDZ for test/00148-GeoExploration.pdz")
+    # assay = PDZFile("PDZ for test/00020-AuPathfinder.pdz")
+    # assay = PDZFile("PDZ for test/00332-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00333-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00334-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00335-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00336-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00337-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00338-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/00339-GeoExploration-VOLTAGEBUGGED.pdz")
+    # assay = PDZFile("PDZ for test/Fe-Mn-SumPeak-Example_00020-AuPathfinder.pdz")
     # print(f"{assay.spectrum1.sourceVoltage=}")
     # print(f"{assay.spectrum1.timeLive=}")
     sanityCheckSpectrum_sumMethod(
         spectrum_counts=assay.spectrum1.counts,
         spectrum_energies=assay.spectrum1.energies,
         source_voltage_in_kV=int(assay.spectrum1.sourceVoltage),
-        spectrum_live_time_in_s=assay.spectrum1.timeLive,
     )
-    try:
+    if assay.spectrum2.isNotEmpty():
         # print(f"{assay.spectrum2.sourceVoltage=}")
         # print(f"{assay.spectrum2.timeLive=}")
         sanityCheckSpectrum_sumMethod(
             spectrum_counts=assay.spectrum2.counts,
             spectrum_energies=assay.spectrum2.energies,
             source_voltage_in_kV=int(assay.spectrum2.sourceVoltage),
-            spectrum_live_time_in_s=assay.spectrum2.timeLive,
         )
-    except AttributeError:
-        print("No Phase 2 present in pdz")
-    try:
+    if assay.spectrum3.isNotEmpty():
         # print(f"{assay.spectrum3.sourceVoltage=}")
         # print(f"{assay.spectrum3.timeLive=}")
         sanityCheckSpectrum_sumMethod(
             spectrum_counts=assay.spectrum3.counts,
             spectrum_energies=assay.spectrum3.energies,
             source_voltage_in_kV=int(assay.spectrum3.sourceVoltage),
-            spectrum_live_time_in_s=assay.spectrum3.timeLive,
         )
-    except AttributeError:
-        print("No Phase 3 present in pdz")
-
     assay.plot()
 
 

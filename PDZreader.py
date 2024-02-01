@@ -1,6 +1,6 @@
 # PDZreader by zh
-versionNum = "v0.1.6"
-versionDate = "2023/11/22"
+versionNum = "v0.1.8"
+versionDate = "2024/02/01"
 
 import struct
 import os
@@ -16,7 +16,16 @@ import plotly_express as px
 
 
 class PDZFile:
-    """A collection of 1-3 XRFSpectrum objects makes up a single PDZFile object, depending on the number of phases/beams in the assay. Create by providing pdz_file_path (os.path or str)"""
+    """A collection of 1-3 XRFSpectrum objects makes up a single PDZFile object, depending on the number of phases/beams in the assay.
+    Usage: e.g.`pdz_file_object = PDZFile('C:/example_file.pdz')` returns a PDZFile object made up of 1, 2, or 3 XRFSpectrum objects (accessed via e.g. `pdz_file_object.spectrum1`),
+    along with some data that applies to the entire file (e.g. `pdz_file_object.name` etc.).
+    These indivudual spectras attributes can be accessed normally (e.g. `pdz_file_object.spectrum1.counts`, etc.).
+
+    Each XRFSpectrum object will have a property `counts` and `energies` that are both lists of len 2048.
+    The corresponding element of each list represents data from one 'channel' of the detector of the instrument.
+    The data is converted to this form to simplify plotting of the spectra - a histogram can be easily plotted with counts on the y-axis and energy on the x-axis.
+    An inbuilt plotting function using plotly is included, and the plot can be shown by calling e.g. `pdz_file_object.plot()`
+    """
 
     def __init__(self, pdz_file_path: str):
         self.name = os.path.basename(pdz_file_path)
@@ -202,7 +211,7 @@ class PDZFile:
 
             log.debug(
                 f"strange 5-size byte thing: {self.pdzfilereader.read(5)}"
-            )  # this comes out as b'--A}\x00' ?
+            )  # this comes out as b'--A}\x00'
 
             self.detectorType = readString(self.pdzfilereader)
             log.info(f"Detector type: {self.detectorType}")
@@ -254,7 +263,9 @@ class PDZFile:
             log.debug(f"some short: {readShort(self.pdzfilereader)}")
 
             # CREATE SPECTRUM 1
-            self.spectrum1 = XRFSpectrum()
+            self.spectrum1: XRFSpectrum = XRFSpectrum()
+            self.spectrum2: XRFSpectrum = XRFSpectrum()
+            self.spectrum3: XRFSpectrum = XRFSpectrum()
             readSpectrumParameters(self.pdzfilereader, self.spectrum1)
             readSpectrumCounts(self.pdzfilereader, self.spectrum1)
             self.spectrum1.generateEnergies()
@@ -264,7 +275,7 @@ class PDZFile:
                 # CREATE SPECTRUM 2
                 log.info("Second Phase found.")
                 self.phasecount += 1
-                self.spectrum2 = XRFSpectrum()
+                # self.spectrum2 = XRFSpectrum()
                 readSpectrumParameters(self.pdzfilereader, self.spectrum2)
                 readSpectrumCounts(self.pdzfilereader, self.spectrum2)
                 self.spectrum2.generateEnergies()
@@ -273,7 +284,7 @@ class PDZFile:
                     # CREATE SPECTRUM 3
                     log.info("Third Phase found.")
                     self.phasecount += 1
-                    self.spectrum3 = XRFSpectrum()
+                    # self.spectrum3 = XRFSpectrum()
                     readSpectrumParameters(self.pdzfilereader, self.spectrum3)
                     readSpectrumCounts(self.pdzfilereader, self.spectrum3)
                     self.spectrum3.generateEnergies()
@@ -1033,7 +1044,8 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-def main():
+def test():
+    log.basicConfig(level=log.INFO)
     pdzpath = filedialog.askopenfilename(
         title="Select PDZ File to view",
         filetypes=[("PDZ File", "*.pdz")],
@@ -1047,30 +1059,10 @@ def main():
     # shiny new inbuilt plotly functionality
     assay.plot()
 
-    # old matplotlib plot stuff
-    # plt.set_loglevel("error")
-    # plt.figure(figsize=(16, 8)).set_tight_layout(True)  # Adjust figure size as needed
-    # plt.xlabel("Energy (keV)")
-    # plt.ylabel("Counts")
-    # plt.title(f"{assay.instrumentSerialNumber} - {assay.name}")
-    # plt.grid(True, which="major", axis="both")
-    # plt.minorticks_on()
-    # plt.rcParams["path.simplify"] = False
-    # plt.style.use("seaborn-v0_8-whitegrid")
-    # plt.plot(assay.spectrum1.energies, assay.spectrum1.counts)
-    # plt.legend([assay.spectrum1.name])
-    # if assay.phasecount > 1:
-    #     plt.plot(assay.spectrum2.energies, assay.spectrum2.counts)
-    #     plt.legend([assay.spectrum1.name, assay.spectrum2.name])
-    #     if assay.phasecount > 2:
-    #         plt.plot(assay.spectrum3.energies, assay.spectrum3.counts)
-    #         plt.legend(
-    #             [assay.spectrum1.name, assay.spectrum2.name, assay.spectrum3.name]
-    #         )
-    # plt.show()
+
+def main():
+    test()
 
 
 if __name__ == "__main__":
-    log.basicConfig(level=log.INFO)
-
     main()
