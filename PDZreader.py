@@ -1,18 +1,19 @@
 # PDZreader by zh
-versionNum = "v0.1.8"
-versionDate = "2024/02/01"
 
-import struct
+import logging as log
 import os
+import struct
 import sys
 from datetime import datetime as dt
-import logging as log
 from functools import cached_property
 
-# import matplotlib.pyplot as plt
 from tkinter import filedialog
+
 import pandas as pd
 import plotly_express as px
+
+versionNum = "v0.1.8"
+versionDate = "2024/02/01"
 
 
 class PDZFile:
@@ -27,7 +28,7 @@ class PDZFile:
     An inbuilt plotting function using plotly is included, and the plot can be shown by calling e.g. `pdz_file_object.plot()`
     """
 
-    def __init__(self, pdz_file_path: str):
+    def __init__(self, pdz_file_path: str) -> None:
         self.name = os.path.basename(pdz_file_path)
         self.readPDZFileData(pdz_file_path)
         self.datetime = self.spectrum1.datetime
@@ -68,12 +69,12 @@ class PDZFile:
             # print(f"(string of length {str(strlen)})")
             return reader.read(strlen * 2).decode("utf16")
 
-        def readSpectrumCounts(reader, spectrum):
+        def readSpectrumCounts(reader, spectrum: XRFSpectrum):
             for i in range(spectrum.numberOfChannels):
                 spectrum.counts.append(readInt(reader))
             log.debug("finished reading counts.")
 
-        def readSpectrumParameters(reader, spectrum):
+        def readSpectrumParameters(reader, spectrum: XRFSpectrum):
             # spectrum parameters
             log.debug("READING SPECTRUM PARAMETERS")
             log.debug(readInt(reader))
@@ -117,9 +118,7 @@ class PDZFile:
             )
             spectrum.filterDesciption = f"{spectrum.filterLayer1ElementSymbol}({spectrum.filterLayer1Thickness}uM)/{spectrum.filterLayer2ElementSymbol}({spectrum.filterLayer2Thickness}uM)/{spectrum.filterLayer3ElementSymbol}({spectrum.filterLayer3Thickness}uM)".replace(
                 "/(0uM)", ""
-            ).replace(
-                "(0uM)", "No Filter"
-            )
+            ).replace("(0uM)", "No Filter")
 
             log.info(f"Filter: {spectrum.filterDesciption}")
             spectrum.detectorTempInC = readFloatSingle(reader)
@@ -156,7 +155,7 @@ class PDZFile:
             spectrum_minute = readShort(reader)
             spectrum_second = readShort(reader)
             spectrum_millisecond = readShort(reader)
-            spectrum.datetime = dt(
+            spectrum.datetime: dt = dt(
                 spectrum_year,
                 spectrum_month,
                 spectrum_day,
@@ -295,7 +294,7 @@ class PDZFile:
         self.df1 = pd.DataFrame(
             data={
                 "Phase": [
-                    f"{self.spectrum1.sourceVoltage:.0f}kV {self.spectrum1.sourceCurrent:.2f}uA / {self.spectrum1.filterDesciption}"
+                    f"{self.name} ({self.spectrum1.sourceVoltage:.0f}kV / {self.spectrum1.sourceCurrent:.2f}uA / {self.spectrum1.filterDesciption} / {self.spectrum1.timeLive:.2f}s live)"
                 ]
                 * 2048,
                 "Energy (keV)": self.spectrum1.energies,
@@ -306,7 +305,7 @@ class PDZFile:
             self.df2 = pd.DataFrame(
                 data={
                     "Phase": [
-                        f"{self.spectrum2.sourceVoltage:.0f}kV {self.spectrum2.sourceCurrent:.2f}uA / {self.spectrum2.filterDesciption}"
+                        f"{self.name} ({self.spectrum2.sourceVoltage:.0f}kV / {self.spectrum2.sourceCurrent:.2f}uA / {self.spectrum2.filterDesciption} / {self.spectrum2.timeLive:.2f}s live)"
                     ]
                     * 2048,
                     "Energy (keV)": self.spectrum2.energies,
@@ -320,7 +319,7 @@ class PDZFile:
             self.df3 = pd.DataFrame(
                 data={
                     "Phase": [
-                        f"{self.spectrum3.sourceVoltage:.0f}kV {self.spectrum3.sourceCurrent:.2f}uA / {self.spectrum3.filterDesciption}"
+                        f"{self.name} ({self.spectrum3.sourceVoltage:.0f}kV / {self.spectrum3.sourceCurrent:.2f}uA / {self.spectrum3.filterDesciption} / {self.spectrum3.timeLive:.2f}s live)"
                     ]
                     * 2048,
                     "Energy (keV)": self.spectrum3.energies,
@@ -345,7 +344,7 @@ class PDZFile:
         return self.fig.show()
 
     def __repr__(self) -> str:
-        return f"{self.name} / {self.phasecount} phase / {self.datetime} / {self.instrumentSerialNumber}"
+        return f"{self.name} / {self.phasecount} phase(s) / {self.datetime} / {self.instrumentSerialNumber}"
 
 
 class XRFSpectrum:
@@ -359,9 +358,12 @@ class XRFSpectrum:
         self.energies = []
         self.energyPerChannel = 20  # in eV
         self.energyChannelStart = 0  # in eV
-        self.numberOfChannels = 0
+        self.numberOfChannels: int = 0
         self.sourceVoltage = 0.0  # in kV
         self.sourceCurrent = 0.0  # in uA
+        self.countsRaw: int = 0
+        self.countsValid: int = 0
+
         # filters
         self.filterLayer1ElementZ = 0  # Z num
         self.filterLayer1Thickness = 0  # in um
@@ -377,6 +379,8 @@ class XRFSpectrum:
         self.ambientTempInC = 0.0
         self.noseTempInC = 0.0
         self.nosePressure = 0.0
+
+        self.timeElapsedTotal = 0
 
     def __repr__(self):  # used for print() of class
         return (self.name, self.datetime, self.sourceVoltage, self.sourceCurrent)
