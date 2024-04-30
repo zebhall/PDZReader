@@ -270,24 +270,26 @@ class PDZFile:
             self.spectrum1.generateEnergies()
             self.phasecount = 1
 
-            if readShort(self.pdzfilereader) == 3:
-                # CREATE SPECTRUM 2
-                log.info("Second Phase found.")
-                self.phasecount += 1
-                # self.spectrum2 = XRFSpectrum()
-                readSpectrumParameters(self.pdzfilereader, self.spectrum2)
-                readSpectrumCounts(self.pdzfilereader, self.spectrum2)
-                self.spectrum2.generateEnergies()
-
+            try:
                 if readShort(self.pdzfilereader) == 3:
-                    # CREATE SPECTRUM 3
-                    log.info("Third Phase found.")
+                    # CREATE SPECTRUM 2
+                    log.info("Second Phase found.")
                     self.phasecount += 1
-                    # self.spectrum3 = XRFSpectrum()
-                    readSpectrumParameters(self.pdzfilereader, self.spectrum3)
-                    readSpectrumCounts(self.pdzfilereader, self.spectrum3)
-                    self.spectrum3.generateEnergies()
+                    # self.spectrum2 = XRFSpectrum()
+                    readSpectrumParameters(self.pdzfilereader, self.spectrum2)
+                    readSpectrumCounts(self.pdzfilereader, self.spectrum2)
+                    self.spectrum2.generateEnergies()
 
+                    if readShort(self.pdzfilereader) == 3:
+                        # CREATE SPECTRUM 3
+                        log.info("Third Phase found.")
+                        self.phasecount += 1
+                        # self.spectrum3 = XRFSpectrum()
+                        readSpectrumParameters(self.pdzfilereader, self.spectrum3)
+                        readSpectrumCounts(self.pdzfilereader, self.spectrum3)
+                        self.spectrum3.generateEnergies()
+            except Exception as e:
+                print(f"Error with phases beyond 1. ({e})")
     @cached_property
     def plottableDataFrame(self):
         """Create the dataframe(s) used for plotting with plotly. only needs to be run once, so this is done in a separate function to use @cached_property."""
@@ -1049,7 +1051,7 @@ def resource_path(relative_path):
 
 
 def test():
-    log.basicConfig(level=log.INFO)
+    log.basicConfig(level=log.DEBUG)
     pdzpath = filedialog.askopenfilename(
         title="Select PDZ File to view",
         filetypes=[("PDZ File", "*.pdz")],
