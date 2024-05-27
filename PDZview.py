@@ -1,12 +1,13 @@
 # PDZview testing doc by ZH
-versionNum = "v0.0.3"
-versionDate = "2023/10/24"
 
 from PDZreader import PDZFile
 import plotly.express as px
 import flet as ft
 from flet.plotly_chart import PlotlyChart
 import pandas as pd
+
+versionNum = "v0.0.3"
+versionDate = "2023/10/24"
 
 
 class App:
