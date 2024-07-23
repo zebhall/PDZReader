@@ -66,8 +66,8 @@ def main():
 		#print(f'ambient temp (c): {newpdz.spectrum2.ambientTempInC}')
 		nosetemps.append(newpdz.spectrum2.noseTempInC)
 		#print(f'nose temp (c): {newpdz.spectrum2.noseTempInC}')
-		rawcounttotals.append(newpdz.spectrum1.countsRaw + newpdz.spectrum2.countsRaw + newpdz.spectrum3.countsRaw)
-		validcounttotals.append(newpdz.spectrum1.countsValid + newpdz.spectrum2.countsValid + newpdz.spectrum3.countsValid)
+		rawcounttotals.append(newpdz.spectrum1.counts_raw + newpdz.spectrum2.counts_raw + newpdz.spectrum3.counts_raw)
+		validcounttotals.append(newpdz.spectrum1.counts_valid + newpdz.spectrum2.counts_valid + newpdz.spectrum3.counts_valid)
 
 		print(f'"{pdz_fnames[i]}" processed. ({i+1}/{len(pdz_fnames)})')
 

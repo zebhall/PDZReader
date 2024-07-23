@@ -88,7 +88,7 @@ def main():
         if isNullSpectra(
             spectrum_counts=newspectra.counts,
             spectrum_energies=newspectra.energies,
-            source_voltage_in_kV=newspectra.sourceVoltage,
+            source_voltage_in_kV=newspectra.source_voltage,
         ):
             failed_pdz_name_list.append(newpdz.pdz_file_name)
             report_csv_row_list.append([newpdz.pdz_file_name, "FAIL"])

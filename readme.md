@@ -18,8 +18,8 @@ Read, display, and Extract data from Bruker's proprietary binary xrf-spectra fil
     
 - two object types: *pdzfile* and *spectrum*. One *pdzfile* is made up of 1-3 *spectrum* objects.
 - each *spectrum* object has it's own properties, importantly:
-    - counts (2048-long list of integers: the photon counts per 'bin' from the detector, the y-axis values of the spectrum
-    - energies (2048-long list of floats: the energy (in keV) of each 'bin' of the detector, the x-axis values of the spectrum
+    - counts (2048-long list of integers: the photon counts per 'bin' from the detector, the y-axis values of the spectrum)
+    - energies (2048-long list of floats: the energy (in keV) of each 'bin' of the detector, the x-axis values of the spectrum)
     - source_voltage (float, voltage of x-ray tube in kV)
     - source_current (float, current of x-ray tube in uA)
 

@@ -36,24 +36,24 @@ def main():
         pdz_data_dict = {}
         if pdz_obj.spectrum1.is_not_empty():
             pdz_data_dict[
-                f"Phase 1 Counts ({pdz_obj.spectrum1.sourceVoltage:.0f}kV)"
+                f"Phase 1 Counts ({pdz_obj.spectrum1.source_voltage:.0f}kV)"
             ] = pdz_obj.spectrum1.counts
             pdz_data_dict[
-                f"Phase 1 Energies ({pdz_obj.spectrum1.sourceVoltage:.0f}kV)"
+                f"Phase 1 Energies ({pdz_obj.spectrum1.source_voltage:.0f}kV)"
             ] = pdz_obj.spectrum1.energies
         if pdz_obj.spectrum2.is_not_empty():
             pdz_data_dict[
-                f"Phase 2 Counts ({pdz_obj.spectrum2.sourceVoltage:.0f}kV)"
+                f"Phase 2 Counts ({pdz_obj.spectrum2.source_voltage:.0f}kV)"
             ] = pdz_obj.spectrum2.counts
             pdz_data_dict[
-                f"Phase 2 Energies ({pdz_obj.spectrum2.sourceVoltage:.0f}kV)"
+                f"Phase 2 Energies ({pdz_obj.spectrum2.source_voltage:.0f}kV)"
             ] = pdz_obj.spectrum2.energies
         if pdz_obj.spectrum3.is_not_empty():
             pdz_data_dict[
-                f"Phase 3 Counts ({pdz_obj.spectrum3.sourceVoltage:.0f}kV)"
+                f"Phase 3 Counts ({pdz_obj.spectrum3.source_voltage:.0f}kV)"
             ] = pdz_obj.spectrum3.counts
             pdz_data_dict[
-                f"Phase 3 Energies ({pdz_obj.spectrum3.sourceVoltage:.0f}kV)"
+                f"Phase 3 Energies ({pdz_obj.spectrum3.source_voltage:.0f}kV)"
             ] = pdz_obj.spectrum3.energies
         csv_name = pdz_obj.pdz_file_name.replace(".pdz", ".csv")
         csv_path = os.path.join(pdz_directory, csv_name)

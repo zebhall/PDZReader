@@ -85,11 +85,11 @@ class PDZFile:
             log.debug("READING SPECTRUM PARAMETERS")
             log.debug(readInt(reader))
             log.debug(readFloatSingle(reader))
-            spectrum.countsRaw = readInt(reader)
-            spectrum.countsValid = readInt(reader)
+            spectrum.counts_raw = readInt(reader)
+            spectrum.counts_valid = readInt(reader)
             # spectrum.deadPercent =
-            log.info(f"Spectrum Counts (raw total): {spectrum.countsRaw}")
-            log.info(f"Spectrum Counts (valid total): {spectrum.countsValid}")
+            log.info(f"Spectrum Counts (raw total): {spectrum.counts_raw}")
+            log.info(f"Spectrum Counts (valid total): {spectrum.counts_valid}")
             log.debug(readFloatSingle(reader))
             log.debug(readFloatSingle(reader))
 
@@ -101,10 +101,10 @@ class PDZFile:
             spectrum.timeLive = readFloatSingle(reader)
             log.info(f"LIVE TIME (phase): {spectrum.timeLive}")
 
-            spectrum.sourceVoltage = readFloatSingle(reader)
-            log.info(f"Source Voltage: {spectrum.sourceVoltage}")
-            spectrum.sourceCurrent = readFloatSingle(reader)
-            log.info(f"Source Current: {spectrum.sourceCurrent}")
+            spectrum.source_voltage = readFloatSingle(reader)
+            log.info(f"Source Voltage: {spectrum.source_voltage}")
+            spectrum.source_current = readFloatSingle(reader)
+            log.info(f"Source Current: {spectrum.source_current}")
 
             spectrum.filterLayer1ElementZ = readShort(reader)
             spectrum.filterLayer1Thickness = readShort(reader)
@@ -304,7 +304,7 @@ class PDZFile:
         self.df1 = pd.DataFrame(
             data={
                 "Phase": [
-                    f"{self.pdz_file_name} ({self.spectrum1.sourceVoltage:.0f}kV / {self.spectrum1.sourceCurrent:.2f}uA / {self.spectrum1.filterDesciption} / {self.spectrum1.timeLive:.2f}s live)"
+                    f"{self.pdz_file_name} ({self.spectrum1.source_voltage:.0f}kV / {self.spectrum1.source_current:.2f}uA / {self.spectrum1.filterDesciption} / {self.spectrum1.timeLive:.2f}s live)"
                 ]
                 * 2048,
                 "Energy (keV)": self.spectrum1.energies,
@@ -315,7 +315,7 @@ class PDZFile:
             self.df2 = pd.DataFrame(
                 data={
                     "Phase": [
-                        f"{self.pdz_file_name} ({self.spectrum2.sourceVoltage:.0f}kV / {self.spectrum2.sourceCurrent:.2f}uA / {self.spectrum2.filterDesciption} / {self.spectrum2.timeLive:.2f}s live)"
+                        f"{self.pdz_file_name} ({self.spectrum2.source_voltage:.0f}kV / {self.spectrum2.source_current:.2f}uA / {self.spectrum2.filterDesciption} / {self.spectrum2.timeLive:.2f}s live)"
                     ]
                     * 2048,
                     "Energy (keV)": self.spectrum2.energies,
@@ -329,7 +329,7 @@ class PDZFile:
             self.df3 = pd.DataFrame(
                 data={
                     "Phase": [
-                        f"{self.pdz_file_name} ({self.spectrum3.sourceVoltage:.0f}kV / {self.spectrum3.sourceCurrent:.2f}uA / {self.spectrum3.filterDesciption} / {self.spectrum3.timeLive:.2f}s live)"
+                        f"{self.pdz_file_name} ({self.spectrum3.source_voltage:.0f}kV / {self.spectrum3.source_current:.2f}uA / {self.spectrum3.filterDesciption} / {self.spectrum3.timeLive:.2f}s live)"
                     ]
                     * 2048,
                     "Energy (keV)": self.spectrum3.energies,
@@ -418,10 +418,10 @@ class XRFSpectrum:
         self.energyPerChannel = 20  # in eV
         self.energyChannelStart = 0  # in eV
         self.numberOfChannels: int = 0
-        self.sourceVoltage = 0.0  # in kV
-        self.sourceCurrent = 0.0  # in uA
-        self.countsRaw: int = 0
-        self.countsValid: int = 0
+        self.source_voltage:float = 0.0  # in kV
+        self.source_current:float = 0.0  # in uA
+        self.counts_raw: int = 0
+        self.counts_valid: int = 0
 
         # filters
         self.filterLayer1ElementZ = 0  # Z num
@@ -442,7 +442,7 @@ class XRFSpectrum:
         self.timeElapsedTotal = 0
 
     def __repr__(self):  # used for print() of class
-        return (self.name, self.datetime, self.sourceVoltage, self.sourceCurrent)
+        return (self.name, self.datetime, self.source_voltage, self.source_current)
 
     def is_not_empty(self) -> bool:
         """returns true if spectrum is valid i.e. has counts data"""
