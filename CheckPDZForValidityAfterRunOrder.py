@@ -90,10 +90,10 @@ def main():
             spectrum_energies=newspectra.energies,
             source_voltage_in_kV=newspectra.sourceVoltage,
         ):
-            failed_pdz_name_list.append(newpdz.name)
-            report_csv_row_list.append([newpdz.name, "FAIL"])
+            failed_pdz_name_list.append(newpdz.pdz_file_name)
+            report_csv_row_list.append([newpdz.pdz_file_name, "FAIL"])
         else:
-            report_csv_row_list.append([newpdz.name, "PASS"])
+            report_csv_row_list.append([newpdz.pdz_file_name, "PASS"])
 
         print(f'"{pdz_fnames[i]}" processed. ({i+1}/{len(pdz_fnames)})')
     print(f"All {len(pdz_fnames)} PDZ files were successfully processed.")

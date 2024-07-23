@@ -4,6 +4,7 @@ import logging as log
 import os
 import struct
 import sys
+import json
 from datetime import datetime as dt
 from functools import cached_property
 
@@ -12,8 +13,10 @@ from tkinter import filedialog
 import pandas as pd
 import plotly_express as px
 
-versionNum = "v0.1.8"
-versionDate = "2024/02/01"
+__author__ = "Z Hall"
+__contact__ = "zhall@portaspecs.com"
+__version__ = "v0.2.0"
+__versiondate__ = "2024/07/23"
 
 
 class PDZFile:
@@ -29,9 +32,12 @@ class PDZFile:
     """
 
     def __init__(self, pdz_file_path: str) -> None:
-        self.name = os.path.basename(pdz_file_path)
+        self.pdz_file_path = pdz_file_path
+        self.pdz_file_directory = os.path.dirname(self.pdz_file_path)
+        self.pdz_file_name = os.path.basename(self.pdz_file_path)
         self.readPDZFileData(pdz_file_path)
         self.datetime = self.spectrum1.datetime
+        self.datetime_str = f"{self.datetime}"
         # pdz as a whole should use first phase datetime?
 
     def readPDZFileData(self, pdz_file_path: str):
@@ -163,6 +169,7 @@ class PDZFile:
                 spectrum_minute,
                 spectrum_second,
             )
+            spectrum.datetime_str: str = f"{spectrum.datetime}"
             log.info(f"Date/Time: {spectrum.datetime}")
 
             spectrum.nosePressure = readFloatSingle(reader)
@@ -267,7 +274,7 @@ class PDZFile:
             self.spectrum3: XRFSpectrum = XRFSpectrum()
             readSpectrumParameters(self.pdzfilereader, self.spectrum1)
             readSpectrumCounts(self.pdzfilereader, self.spectrum1)
-            self.spectrum1.generateEnergies()
+            self.spectrum1.generate_energies()
             self.phasecount = 1
 
             try:
@@ -278,7 +285,7 @@ class PDZFile:
                     # self.spectrum2 = XRFSpectrum()
                     readSpectrumParameters(self.pdzfilereader, self.spectrum2)
                     readSpectrumCounts(self.pdzfilereader, self.spectrum2)
-                    self.spectrum2.generateEnergies()
+                    self.spectrum2.generate_energies()
 
                     if readShort(self.pdzfilereader) == 3:
                         # CREATE SPECTRUM 3
@@ -287,16 +294,17 @@ class PDZFile:
                         # self.spectrum3 = XRFSpectrum()
                         readSpectrumParameters(self.pdzfilereader, self.spectrum3)
                         readSpectrumCounts(self.pdzfilereader, self.spectrum3)
-                        self.spectrum3.generateEnergies()
+                        self.spectrum3.generate_energies()
             except Exception as e:
                 print(f"Error with phases beyond 1. ({e})")
+
     @cached_property
-    def plottableDataFrame(self):
+    def plottable_dataframe(self):
         """Create the dataframe(s) used for plotting with plotly. only needs to be run once, so this is done in a separate function to use @cached_property."""
         self.df1 = pd.DataFrame(
             data={
                 "Phase": [
-                    f"{self.name} ({self.spectrum1.sourceVoltage:.0f}kV / {self.spectrum1.sourceCurrent:.2f}uA / {self.spectrum1.filterDesciption} / {self.spectrum1.timeLive:.2f}s live)"
+                    f"{self.pdz_file_name} ({self.spectrum1.sourceVoltage:.0f}kV / {self.spectrum1.sourceCurrent:.2f}uA / {self.spectrum1.filterDesciption} / {self.spectrum1.timeLive:.2f}s live)"
                 ]
                 * 2048,
                 "Energy (keV)": self.spectrum1.energies,
@@ -307,7 +315,7 @@ class PDZFile:
             self.df2 = pd.DataFrame(
                 data={
                     "Phase": [
-                        f"{self.name} ({self.spectrum2.sourceVoltage:.0f}kV / {self.spectrum2.sourceCurrent:.2f}uA / {self.spectrum2.filterDesciption} / {self.spectrum2.timeLive:.2f}s live)"
+                        f"{self.pdz_file_name} ({self.spectrum2.sourceVoltage:.0f}kV / {self.spectrum2.sourceCurrent:.2f}uA / {self.spectrum2.filterDesciption} / {self.spectrum2.timeLive:.2f}s live)"
                     ]
                     * 2048,
                     "Energy (keV)": self.spectrum2.energies,
@@ -321,7 +329,7 @@ class PDZFile:
             self.df3 = pd.DataFrame(
                 data={
                     "Phase": [
-                        f"{self.name} ({self.spectrum3.sourceVoltage:.0f}kV / {self.spectrum3.sourceCurrent:.2f}uA / {self.spectrum3.filterDesciption} / {self.spectrum3.timeLive:.2f}s live)"
+                        f"{self.pdz_file_name} ({self.spectrum3.sourceVoltage:.0f}kV / {self.spectrum3.sourceCurrent:.2f}uA / {self.spectrum3.filterDesciption} / {self.spectrum3.timeLive:.2f}s live)"
                     ]
                     * 2048,
                     "Energy (keV)": self.spectrum3.energies,
@@ -338,15 +346,63 @@ class PDZFile:
         """Call this function to plot the pdz spectra in a plotly graph, in a new browser window."""
         # create and show figure. dfs are created when this is run first time.
         self.fig = px.line(
-            self.plottableDataFrame, x="Energy (keV)", y="Counts", color="Phase"
+            self.plottable_dataframe, x="Energy (keV)", y="Counts", color="Phase"
         )
         self.fig.update_layout(
             legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99)
         )
         return self.fig.show()
 
+    def dump_to_txt(self):
+        """dumps all pdz data to a text file in same dir as pdz"""
+        self.txt_dump_file_name: str = self.pdz_file_name.replace(".pdz", "_dump.txt")
+        self.txt_dump_file_path: str = os.path.join(
+            self.pdz_file_directory, self.txt_dump_file_name
+        )
+        with open(self.txt_dump_file_path, mode="x") as dump_file:
+            dump_file.write(f"{self.__repr__()}\n\n")
+            dump_file.write(
+                json.dumps(
+                    self.__dict__,
+                    skipkeys=True,
+                    default=lambda o: "<not serializable>",
+                    indent=1,
+                )
+            )
+            dump_file.write("\n\n### SPECTRUM 1 ###\n")
+            dump_file.write(
+                json.dumps(
+                    self.spectrum1.__dict__,
+                    skipkeys=True,
+                    default=lambda o: "<not serializable>",
+                    indent=1,
+                )
+            )
+            if self.spectrum2.is_not_empty():
+                dump_file.write("\n\n### SPECTRUM 2 ###\n")
+                dump_file.write(
+                    json.dumps(
+                        self.spectrum2.__dict__,
+                        skipkeys=True,
+                        default=lambda o: "<not serializable>",
+                        indent=1,
+                    )
+                )
+            if self.spectrum3.is_not_empty():
+                dump_file.write("\n\n### SPECTRUM 3 ###\n")
+                dump_file.write(
+                    json.dumps(
+                        self.spectrum3.__dict__,
+                        skipkeys=True,
+                        default=lambda o: "<not serializable>",
+                        indent=1,
+                    )
+                )
+
+            dump_file.write("\n\n### END OF FILE ###")
+
     def __repr__(self) -> str:
-        return f"{self.name} / {self.phasecount} phase(s) / {self.datetime} / {self.instrumentSerialNumber}"
+        return f"{self.pdz_file_name} / {self.phasecount} phase(s) / {self.datetime} / {self.instrumentSerialNumber}"
 
 
 class XRFSpectrum:
@@ -355,6 +411,7 @@ class XRFSpectrum:
     def __init__(self):
         self.name = ""
         self.datetime = dt(1970, 1, 1, 0, 0, 0)
+        self.datetime_str = ""
         # using unix timestamp 0-time as default.
         self.counts = []
         self.energies = []
@@ -387,14 +444,14 @@ class XRFSpectrum:
     def __repr__(self):  # used for print() of class
         return (self.name, self.datetime, self.sourceVoltage, self.sourceCurrent)
 
-    def isNotEmpty(self) -> bool:
+    def is_not_empty(self) -> bool:
         """returns true if spectrum is valid i.e. has counts data"""
         if self.counts == []:
             return False
         else:
             return True
 
-    def generateEnergies(self) -> list[float]:
+    def generate_energies(self) -> list[float]:
         self.energies = list(
             ((i * self.energyPerChannel + self.energyChannelStart) * 0.001)
             for i in range(0, self.numberOfChannels)
@@ -1062,6 +1119,7 @@ def test():
 
     assay = PDZFile(pdzpath)
     print(f"PDZ File Loaded: {assay}")
+    assay.dump_to_txt()
     # shiny new inbuilt plotly functionality
     assay.plot()
 

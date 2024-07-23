@@ -152,7 +152,7 @@ def main():
         spectrum_energies=assay.spectrum1.energies,
         source_voltage_in_kV=int(assay.spectrum1.sourceVoltage),
     )
-    if assay.spectrum2.isNotEmpty():
+    if assay.spectrum2.is_not_empty():
         # print(f"{assay.spectrum2.sourceVoltage=}")
         # print(f"{assay.spectrum2.timeLive=}")
         sanityCheckSpectrum_sumMethod(
@@ -160,7 +160,7 @@ def main():
             spectrum_energies=assay.spectrum2.energies,
             source_voltage_in_kV=int(assay.spectrum2.sourceVoltage),
         )
-    if assay.spectrum3.isNotEmpty():
+    if assay.spectrum3.is_not_empty():
         # print(f"{assay.spectrum3.sourceVoltage=}")
         # print(f"{assay.spectrum3.timeLive=}")
         sanityCheckSpectrum_sumMethod(
