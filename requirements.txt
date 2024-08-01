@@ -1,0 +1,6 @@
+flet==0.23.2
+matplotlib==3.8.2
+numpy==2.0.1
+pandas==2.2.2
+plotly==5.23.0
+plotly_express==0.4.1
