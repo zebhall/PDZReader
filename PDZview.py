@@ -1,4 +1,5 @@
 # PDZview testing doc by ZH
+# NOT WORKING, USE PDZreaderpy 's .plot method or Comparison_plotting.py
 
 from PDZreader import PDZFile
 import plotly.express as px
@@ -6,9 +7,10 @@ import flet as ft
 from flet.plotly_chart import PlotlyChart
 import pandas as pd
 
-versionNum = "v0.0.3"
-versionDate = "2023/10/24"
-
+__author__ = "Zeb Hall"
+__contact__ = "hzeb@pm.me"
+__version__ = "v0.0.3" 
+__versiondate__ = "2023/10/24"
 
 class App:
     def __init__(self, page: ft.Page):

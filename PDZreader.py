@@ -14,7 +14,7 @@ import pandas as pd
 import plotly_express as px
 
 __author__ = "Z Hall"
-__contact__ = "zhall@portaspecs.com"
+__contact__ = "hzeb@pm.me"
 __version__ = "v0.2.0"
 __versiondate__ = "2024/07/23"
 
