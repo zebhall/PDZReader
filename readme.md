@@ -7,7 +7,7 @@ Read, display, and Extract data from Bruker's proprietary binary xrf-spectra fil
 ```python
 from PDZreader import PDZfile
 
-pdz_object = PDZFile('pdz_file_path_as_string')
+pdz_object = PDZFile('Path/To/File.pdz')
 
 print(pdz_object.spectrum1.counts) # 2048-item list
 print(pdz_object.spectrum1.energies) # 2048-item list
