@@ -2,7 +2,6 @@
 
 from PDZreader import PDZFile
 import os
-import sys
 
 
 #a = PDZFile('C:/Users/Zeb/Documents/GitHub/PDZReader/00002-Spectrometer Mode.pdz')
