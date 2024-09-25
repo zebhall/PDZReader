@@ -2,7 +2,6 @@
 
 from PDZreader import PDZFile
 import os
-import sys
 import numpy as np
 from pprint import pprint
 import csv
