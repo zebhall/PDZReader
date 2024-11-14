@@ -76,7 +76,7 @@ def main(page: ft.Page) -> None:
     page.padding = 20
 
     # get pdz data
-    pdz = PDZFile("00093-GeoExploration.pdz")
+    pdz = PDZFile("PDZ for test/00093-GeoExploration.pdz")
 
     # create widgets
     plottable_pdz = SpectrumPlottable(
