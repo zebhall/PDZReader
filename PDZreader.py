@@ -124,7 +124,9 @@ class PDZFile:
             )
             spectrum.filterDesciption = f"{spectrum.filterLayer1ElementSymbol}({spectrum.filterLayer1Thickness}uM)/{spectrum.filterLayer2ElementSymbol}({spectrum.filterLayer2Thickness}uM)/{spectrum.filterLayer3ElementSymbol}({spectrum.filterLayer3Thickness}uM)".replace(
                 "/(0uM)", ""
-            ).replace("(0uM)", "No Filter")
+            ).replace(
+                "(0uM)", "No Filter"
+            )
 
             log.info(f"Filter: {spectrum.filterDesciption}")
             spectrum.detectorTempInC = readFloatSingle(reader)
@@ -418,8 +420,8 @@ class XRFSpectrum:
         self.energyPerChannel = 20  # in eV
         self.energyChannelStart = 0  # in eV
         self.numberOfChannels: int = 0
-        self.source_voltage:float = 0.0  # in kV
-        self.source_current:float = 0.0  # in uA
+        self.source_voltage: float = 0.0  # in kV
+        self.source_current: float = 0.0  # in uA
         self.counts_raw: int = 0
         self.counts_valid: int = 0
 
