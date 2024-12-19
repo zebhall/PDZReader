@@ -1095,8 +1095,8 @@ def elementSymboltoName(sym: str):
         try:
             i = elementSymbols.index(sym)
             return elementNames[i]
-        except Exception:
-            log.error("Element symbol unrecognised")
+        except Exception as e:
+            log.error(f"Element symbol unrecognised ({e})")
             return "ERR"
     else:
         log.error("Error: Symbol too long")
