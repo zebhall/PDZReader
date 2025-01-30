@@ -1,10 +1,10 @@
 # PDZ-Spectra-To-CSV test
-versionNum = "v0.0.1"
-versionDate = "2024/01/30"
-
 from PDZreader import PDZFile
 import os
 import pandas as pd
+
+versionNum = "v0.0.1"
+versionDate = "2024/01/30"
 
 
 def getPDZFilePathList(directory: str) -> list[str]:
@@ -25,7 +25,7 @@ def getPDZFilePathList(directory: str) -> list[str]:
 
 
 def main():
-    pdz_directory: str = input(f"Enter directory to look for PDZ Files: ")
+    pdz_directory: str = input("Enter directory to look for PDZ Files: ")
     pdz_paths: list[str] = getPDZFilePathList(pdz_directory)
     pdz_count_total: int = len(pdz_paths)
     pdz_count_processed: int = 0
@@ -60,7 +60,9 @@ def main():
         df = pd.DataFrame(pdz_data_dict)
         df.to_csv(csv_path)
         pdz_count_processed += 1
-        print(f"Processed: {pdz_obj.pdz_file_name} [{pdz_count_processed}/{pdz_count_total}]")
+        print(
+            f"Processed: {pdz_obj.pdz_file_name} [{pdz_count_processed}/{pdz_count_total}]"
+        )
 
 
 if __name__ == "__main__":
