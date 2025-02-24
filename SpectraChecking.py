@@ -25,16 +25,20 @@ import csv
 #     return timeit_wrapper
 
 
-def sanity_check_spectrum_summethod(spectrum_counts: list[int], spectrum_energies: list[float], source_voltage_in_kV: int) -> bool:
+def sanity_check_spectrum_summethod(
+    spectrum_counts: list[int],
+    spectrum_energies: list[float],
+    source_voltage_in_kV: int,
+) -> bool:
     """Checks that a spectrum is 'sensible', and that the communicated voltage is accurate.
-    This is required because of a 'voltage bug' in Bruker pXRF instrument software (or NSI tube firmware), 
+    This is required because of a 'voltage bug' in Bruker pXRF instrument software (or NSI tube firmware),
     sometimes causing phases of an assay to use an incorrect voltage from a previous phase.
-    This algorithm operates by working backwards through the list of counts (starting from the right-hand-side of the spectrum), 
+    This algorithm operates by working backwards through the list of counts (starting from the right-hand-side of the spectrum),
     and summing those counts it passes until it reaches the point where 2% of the total counts of the spectrum have been passed.
-    At this point on the spectrum, the energy of that channel should be below the source voltage used for the spectrum 
-    (assuming no sum-peaks, which CAN give a false-positive). The Bremsstrahlung in the spectrum *should* drop down 
+    At this point on the spectrum, the energy of that channel should be below the source voltage used for the spectrum
+    (assuming no sum-peaks, which CAN give a false-positive). The Bremsstrahlung in the spectrum *should* drop down
     to near 0 counts beyond the source voltage (in keV).
-    
+
     `spectrum_counts` is a ordered list of 2048 integers representing the counts from each channel/bin of the detector.\n
     `spectrum_energies` is a ordered list of 2048 floats representing the energy (keV) of each channel/bin of the detector.\n
     `source_voltage_in_kV` is the voltage of the source for the given spectrum, AS REPORTED BY THE OEM API AND IN THE PDZ FILE.\n
@@ -50,7 +54,9 @@ def sanity_check_spectrum_summethod(spectrum_counts: list[int], spectrum_energie
             break
     if spectrum_energies[abovethreshold_index] > source_voltage_in_kV:
         # this point should be LOWER than source voltage always, unless a voltage bug has occurred.
-        print(f"FAILED Sanity Check! Details: The 2%-total-counts threshold energy ({spectrum_energies[abovethreshold_index]:.2f}kV) was HIGHER than the Reported source voltage ({source_voltage_in_kV}kV).")
+        print(
+            f"FAILED Sanity Check! Details: The 2%-total-counts threshold energy ({spectrum_energies[abovethreshold_index]:.2f}kV) was HIGHER than the Reported source voltage ({source_voltage_in_kV}kV)."
+        )
         return False
     else:
         # spectum passed checks
@@ -162,7 +168,8 @@ def is_null_spectrum(
 #         print(f"FAILED: {source_voltage_in_kV}kV phase")
 #         return False
 
-def sanity_check_directory(dir:str):
+
+def sanity_check_directory(dir: str):
 
     print(f"Recursively searching for PDZ files in {dir}...")
 
@@ -175,7 +182,7 @@ def sanity_check_directory(dir:str):
     #         pdz_fnames.append(fname)
     #         pdz_in_dir_count += 1
 
-        # Check if directory contains .pdz files and gather them from all subdirectories
+    # Check if directory contains .pdz files and gather them from all subdirectories
     for root, _, files in os.walk(dir):
         for fname in files:
             if fname.endswith(".pdz"):
@@ -197,11 +204,15 @@ def sanity_check_directory(dir:str):
 
     for i in range(len(pdz_fnames)):
         file_path = pdz_fnames[i]
-        
+
         try:
             test_pdz = PDZFile(file_path)
 
-            for test_spectrum in [test_pdz.spectrum1, test_pdz.spectrum2, test_pdz.spectrum3]:
+            for test_spectrum in [
+                test_pdz.spectrum1,
+                test_pdz.spectrum2,
+                test_pdz.spectrum3,
+            ]:
                 if test_spectrum.is_not_empty():
                     if not sanity_check_spectrum_summethod(
                         spectrum_counts=test_spectrum.counts,
@@ -214,30 +225,39 @@ def sanity_check_directory(dir:str):
                         break
         except Exception as e:
             print(f"Error: PDZ File {pdz_fnames[i]} could not be processed ({e})")
-    
 
-        print(f'"{os.path.relpath(file_path, dir)}" processed. ({i+1}/{len(pdz_fnames)})')
+        print(
+            f'"{os.path.relpath(file_path, dir)}" processed. ({i+1}/{len(pdz_fnames)})'
+        )
     print(f"All {len(pdz_fnames)} PDZ files were successfully processed.")
     print(f"Found {len(failed_pdz_name_list)} failed PDZs.")
     if len(failed_pdz_name_list) != 0:
         print(f"Failed PDZ Files: {failed_pdz_name_list}")
         print("Creating CSV File...")
-        csv_fname = 'pdz_results.csv'
-        with open(csv_fname, 'x', newline='') as csvfile:
-            fieldnames = ['File', 'PDZ Date', 'Path']
+        csv_fname = "pdz_results.csv"
+        with open(csv_fname, "x", newline="") as csvfile:
+            fieldnames = ["File", "PDZ Date", "Path"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             for i in range(len(failed_pdz_name_list)):
-                writer.writerow({'File': failed_pdz_name_list[i], 'PDZ Date': failed_pdz_dt_list[i], 'Path': failed_pdz_filepath_list[i]})
+                writer.writerow(
+                    {
+                        "File": failed_pdz_name_list[i],
+                        "PDZ Date": failed_pdz_dt_list[i],
+                        "Path": failed_pdz_filepath_list[i],
+                    }
+                )
         print(f"CSV File Created, saved as {csv_fname}...")
-        
-    input()
 
+    input()
 
 
 def main():
 
-    starting_dir = filedialog.askdirectory(initialdir=os.getcwd(), title="Select Directory to Recursively Search for PDZ Files")
+    starting_dir = filedialog.askdirectory(
+        initialdir=os.getcwd(),
+        title="Select Directory to Recursively Search for PDZ Files",
+    )
     sanity_check_directory(starting_dir)
 
     # assay = PDZFile("PDZ for test/00007-Spectrometer Mode.pdz")
