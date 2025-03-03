@@ -124,9 +124,7 @@ class PDZFile:
             )
             spectrum.filterDesciption = f"{spectrum.filterLayer1ElementSymbol}({spectrum.filterLayer1Thickness}uM)/{spectrum.filterLayer2ElementSymbol}({spectrum.filterLayer2Thickness}uM)/{spectrum.filterLayer3ElementSymbol}({spectrum.filterLayer3Thickness}uM)".replace(
                 "/(0uM)", ""
-            ).replace(
-                "(0uM)", "No Filter"
-            )
+            ).replace("(0uM)", "No Filter")
 
             log.info(f"Filter: {spectrum.filterDesciption}")
             spectrum.detectorTempInC = readFloatSingle(reader)
@@ -157,13 +155,13 @@ class PDZFile:
 
             spectrum_year = readShort(reader)
             spectrum_month = readShort(reader)
-            spectrum_datetimedayofweek = readShort(reader)
+            spectrum_datetimedayofweek = readShort(reader)  # noqa: F841
             spectrum_day = readShort(reader)
             spectrum_hour = readShort(reader)
             spectrum_minute = readShort(reader)
             spectrum_second = readShort(reader)
-            spectrum_millisecond = readShort(reader)
-            spectrum.datetime: dt = dt(
+            spectrum_millisecond = readShort(reader)  # noqa: F841
+            spectrum.datetime = dt(
                 spectrum_year,
                 spectrum_month,
                 spectrum_day,
@@ -171,7 +169,7 @@ class PDZFile:
                 spectrum_minute,
                 spectrum_second,
             )
-            spectrum.datetime_str: str = f"{spectrum.datetime}"
+            spectrum.datetime_str = f"{spectrum.datetime}"
             log.info(f"Date/Time: {spectrum.datetime}")
 
             spectrum.nosePressure = readFloatSingle(reader)
